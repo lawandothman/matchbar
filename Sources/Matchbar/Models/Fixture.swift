@@ -15,6 +15,15 @@ struct Fixture: Identifiable, Equatable {
 
     var isLive: Bool { status.isLive }
 
+    var liveLabel: String? {
+        switch status {
+        case .inPlay, .extraTime: return minute
+        case .paused: return "HT"
+        case .penaltyShootout: return "PENS"
+        default: return nil
+        }
+    }
+
     var summaryLine: String {
         let home = [homeTeam.flag, homeTeam.displayName].compactMap { $0 }.joined(separator: " ")
         let away = [awayTeam.flag, awayTeam.displayName].compactMap { $0 }.joined(separator: " ")
