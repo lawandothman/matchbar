@@ -7,4 +7,5 @@ struct FixtureTeam: Decodable, Equatable {
 
     var displayName: String { name ?? "TBD" }
     var shortName: String { tla ?? name ?? "TBD" }
+    var flag: String? { CountryFlag.emoji(for: tla) }
 }

@@ -8,7 +8,7 @@ struct FixtureRow: View {
             statusColumn
                 .frame(width: 44, alignment: .leading)
 
-            Text(fixture.homeTeam.displayName)
+            Text(homeLabel)
                 .frame(maxWidth: .infinity, alignment: .trailing)
                 .lineLimit(1)
 
@@ -17,7 +17,7 @@ struct FixtureRow: View {
                 .fontWeight(fixture.isLive ? .bold : .regular)
                 .frame(width: 44)
 
-            Text(fixture.awayTeam.displayName)
+            Text(awayLabel)
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .lineLimit(1)
 
@@ -27,6 +27,14 @@ struct FixtureRow: View {
                 .frame(width: 44, alignment: .trailing)
         }
         .font(.system(size: 12))
+    }
+
+    private var homeLabel: String {
+        [fixture.homeTeam.displayName, fixture.homeTeam.flag].compactMap { $0 }.joined(separator: " ")
+    }
+
+    private var awayLabel: String {
+        [fixture.awayTeam.flag, fixture.awayTeam.displayName].compactMap { $0 }.joined(separator: " ")
     }
 
     private var scoreColumn: String {
