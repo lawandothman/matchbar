@@ -33,7 +33,7 @@ struct DashboardView: View {
             Divider()
             footer
         }
-        .frame(width: 380)
+        .frame(width: 420)
     }
 
     private var tabPicker: some View {
