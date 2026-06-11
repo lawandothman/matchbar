@@ -16,27 +16,25 @@ enum TeamNameOverrides {
         overrides[name] ?? placeholder(name) ?? name
     }
 
-    // knockout seeding codes ESPN uses before teams are decided:
-    // "1A" winner of Group A, "2B" runner-up, "3RD A/B/C/D/F" a best third
+    // ESPN's seeding codes for undecided knockout slots: "1A", "2B",
+    // "3RD A/B/C/D/F", "RD32 W9", "QF W3", "SF L2". Show them all as TBD;
+    // the fixture's round label carries the context.
     private static func placeholder(_ name: String) -> String? {
         let upper = name.uppercased()
         if upper.count == 2,
-           let kind = upper.first, let group = upper.last,
-           ("A"..."L").contains(String(group)) {
-            if kind == "1" { return "Winner \(group)" }
-            if kind == "2" { return "Runner-up \(group)" }
+           let kind = upper.first, kind == "1" || kind == "2",
+           let group = upper.last, ("A"..."L").contains(String(group)) {
+            return "TBD"
         }
         if upper.hasPrefix("3RD ") {
-            return "Best 3rd"
+            return "TBD"
         }
-        // "RD32 W9", "RD16 W1", "QF W3", "SF L2" - winner/loser of an
-        // earlier knockout match
         let parts = upper.split(separator: " ")
         if parts.count == 2,
            parts[0].hasPrefix("RD") || parts[0] == "QF" || parts[0] == "SF",
            let kind = parts[1].first, kind == "W" || kind == "L",
-           let number = Int(parts[1].dropFirst()) {
-            return kind == "W" ? "Winner \(number)" : "Loser \(number)"
+           Int(parts[1].dropFirst()) != nil {
+            return "TBD"
         }
         return nil
     }
