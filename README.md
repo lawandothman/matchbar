@@ -18,3 +18,7 @@ or run the app and paste the token into the popover.
 make run   # dev
 make app   # bundle WorldCupApp.app
 ```
+
+## Notifications
+
+Goal, kickoff and full-time notifications only work from the bundled app (`make app`) — macOS won't deliver them for a bare `swift run` binary.

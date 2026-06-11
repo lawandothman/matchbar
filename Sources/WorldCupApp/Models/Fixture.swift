@@ -12,6 +12,12 @@ struct Fixture: Decodable, Identifiable, Equatable {
 
     var isLive: Bool { status.isLive }
 
+    var summaryLine: String {
+        let home = [homeTeam.flag, homeTeam.displayName].compactMap { $0 }.joined(separator: " ")
+        let away = [awayTeam.flag, awayTeam.displayName].compactMap { $0 }.joined(separator: " ")
+        return "\(home) \(score.display) \(away)"
+    }
+
     var roundLabel: String? {
         if let group {
             return group.replacingOccurrences(of: "GROUP_", with: "Group ")
