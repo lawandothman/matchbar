@@ -52,8 +52,26 @@ final class MatchStore {
             stampGroups()
             lastUpdated = Date()
             lastError = nil
+            welcomeIfNeeded()
         } catch {
             lastError = error.localizedDescription
+        }
+    }
+
+    // one-time hello after the first successful fetch, delayed past the
+    // notification permission prompt
+    private func welcomeIfNeeded() {
+        guard MatchNotifier.isAvailable,
+              !UserDefaults.standard.bool(forKey: "didWelcome"),
+              !fixtures.isEmpty
+        else { return }
+        UserDefaults.standard.set(true, forKey: "didWelcome")
+
+        if let live = liveFixtures.first {
+            notifier.notify(title: "You're all set", body: "Live now: \(live.summaryLine)", after: 15)
+        } else if let next = fixtures.filter({ $0.utcDate > Date() }).min(by: { $0.utcDate < $1.utcDate }) {
+            let when = next.utcDate.formatted(.dateTime.weekday(.wide).hour().minute())
+            notifier.notify(title: "You're all set", body: "\(next.summaryLine) · \(when)", after: 15)
         }
     }
 
