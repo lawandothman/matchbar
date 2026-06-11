@@ -38,15 +38,15 @@ jobs:
       - name: Build and sign
         run: |
           make app
-          codesign --force --options runtime --deep --sign "Developer ID Application" WorldCupApp.app/Contents/Frameworks/Sparkle.framework
-          codesign --force --options runtime --sign "Developer ID Application" WorldCupApp.app
+          codesign --force --options runtime --deep --sign "Developer ID Application" Matchbar.app/Contents/Frameworks/Sparkle.framework
+          codesign --force --options runtime --sign "Developer ID Application" Matchbar.app
 
       - name: Package as DMG
         run: |
           mkdir dist
-          cp -R WorldCupApp.app dist/
+          cp -R Matchbar.app dist/
           ln -s /Applications dist/Applications
-          hdiutil create -volname "World Cup App" -srcfolder dist -ov -format UDZO WorldCupApp.dmg
+          hdiutil create -volname "Matchbar" -srcfolder dist -ov -format UDZO Matchbar.dmg
 
       - name: Notarize and staple
         env:
@@ -56,33 +56,33 @@ jobs:
         run: |
           KEY="$RUNNER_TEMP/AuthKey.p8"
           echo -n "$NOTARY_KEY" > "$KEY"
-          xcrun notarytool submit WorldCupApp.dmg \
+          xcrun notarytool submit Matchbar.dmg \
             --key "$KEY" --key-id "$NOTARY_KEY_ID" --issuer "$NOTARY_ISSUER_ID" --wait
-          xcrun stapler staple WorldCupApp.dmg
+          xcrun stapler staple Matchbar.dmg
 
       - name: Publish release
         env:
-          GH_TOKEN: ${{ secrets.RELEASES_TOKEN }}
+          GH_TOKEN: ${{ github.token }}
         run: |
-          gh release create "$GITHUB_REF_NAME" WorldCupApp.dmg \
-            --repo lawandothman/world-cup-app-releases \
-            --title "$GITHUB_REF_NAME" --notes "World Cup App $GITHUB_REF_NAME"
+          gh release create "$GITHUB_REF_NAME" Matchbar.dmg \
+            --title "$GITHUB_REF_NAME" --generate-notes
 
-      - name: Publish appcast
+      - name: Publish download and appcast to the site
         env:
           SPARKLE_KEY: ${{ secrets.SPARKLE_KEY }}
         run: |
           curl -sL -o /tmp/sparkle.tar.xz https://github.com/sparkle-project/Sparkle/releases/download/2.7.0/Sparkle-2.7.0.tar.xz
           mkdir /tmp/sparkle && tar -xf /tmp/sparkle.tar.xz -C /tmp/sparkle
-          SIG=$(echo "$SPARKLE_KEY" | /tmp/sparkle/bin/sign_update --ed-key-file - WorldCupApp.dmg)
-          URL="https://github.com/lawandothman/world-cup-app-releases/releases/download/${GITHUB_REF_NAME}/WorldCupApp.dmg"
+          SIG=$(echo "$SPARKLE_KEY" | /tmp/sparkle/bin/sign_update --ed-key-file - Matchbar.dmg)
+          URL="https://matchbar.vercel.app/Matchbar.dmg"
           git fetch origin main
           git checkout main
+          cp Matchbar.dmg docs/Matchbar.dmg
           cat > docs/appcast.xml <<EOF
           <?xml version="1.0" encoding="utf-8"?>
           <rss version="2.0" xmlns:sparkle="http://www.andymatuschak.org/xml-namespaces/sparkle">
             <channel>
-              <title>World Cup App</title>
+              <title>Matchbar</title>
               <item>
                 <title>${GITHUB_REF_NAME}</title>
                 <sparkle:version>${{ github.run_number }}</sparkle:version>
@@ -96,6 +96,6 @@ jobs:
           EOF
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add docs/appcast.xml
-          git commit -m "appcast ${GITHUB_REF_NAME}"
+          git add docs/appcast.xml docs/Matchbar.dmg
+          git commit -m "release ${GITHUB_REF_NAME}"
           git push origin main
