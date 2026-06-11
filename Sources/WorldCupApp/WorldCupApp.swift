@@ -2,16 +2,17 @@ import SwiftUI
 
 @main
 struct WorldCupApp: App {
+    @State private var store = MatchStore()
+
     init() {
         NSApplication.shared.setActivationPolicy(.accessory)
     }
 
     var body: some Scene {
         MenuBarExtra {
-            Text("World Cup 2026")
-                .padding()
+            DashboardView(store: store)
         } label: {
-            Image(systemName: "soccerball")
+            MenuBarLabel(store: store)
         }
         .menuBarExtraStyle(.window)
     }

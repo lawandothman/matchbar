@@ -1,0 +1,82 @@
+import SwiftUI
+
+struct DashboardView: View {
+    let store: MatchStore
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 0) {
+            header
+            Divider()
+
+            if !store.hasToken {
+                TokenPromptView(store: store)
+            } else if store.todayFixtures.isEmpty {
+                emptyState
+            } else {
+                fixtureList
+            }
+
+            Divider()
+            footer
+        }
+        .frame(width: 320)
+    }
+
+    private var header: some View {
+        HStack {
+            Text("World Cup 2026")
+                .font(.system(size: 13, weight: .bold))
+            Spacer()
+            Text(Date(), format: .dateTime.weekday(.wide).day().month())
+                .font(.caption)
+                .foregroundStyle(.secondary)
+        }
+        .padding(.horizontal, 12)
+        .padding(.vertical, 8)
+    }
+
+    private var fixtureList: some View {
+        VStack(spacing: 0) {
+            ForEach(store.todayFixtures) { fixture in
+                FixtureRow(fixture: fixture)
+                    .padding(.horizontal, 12)
+                    .padding(.vertical, 5)
+            }
+        }
+        .padding(.vertical, 4)
+    }
+
+    private var emptyState: some View {
+        Text(store.lastError ?? "No matches today")
+            .font(.caption)
+            .foregroundStyle(.secondary)
+            .frame(maxWidth: .infinity)
+            .padding(.vertical, 20)
+    }
+
+    private var footer: some View {
+        HStack {
+            if let error = store.lastError, !store.todayFixtures.isEmpty {
+                Text(error)
+                    .font(.caption2)
+                    .foregroundStyle(.red)
+            } else if let updated = store.lastUpdated {
+                Text("Updated \(updated, format: .dateTime.hour().minute())")
+                    .font(.caption2)
+                    .foregroundStyle(.secondary)
+            }
+            Spacer()
+            Button("Refresh") {
+                Task { await store.refresh() }
+            }
+            .font(.caption)
+            Button("Quit") {
+                NSApplication.shared.terminate(nil)
+            }
+            .font(.caption)
+        }
+        .buttonStyle(.plain)
+        .padding(.horizontal, 12)
+        .padding(.vertical, 8)
+    }
+}
