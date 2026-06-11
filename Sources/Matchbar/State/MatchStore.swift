@@ -10,6 +10,7 @@ final class MatchStore {
     private(set) var lastUpdated: Date?
 
     private var pollTask: Task<Void, Never>?
+    private var announcedGoals: [Int: Int] = [:]
     private let provider: any ScoreProvider = ESPNClient()
     private let notifier = MatchNotifier()
 
@@ -127,22 +128,30 @@ final class MatchStore {
             let newHome = fixture.score.fullTime.home ?? 0
             let oldAway = prior.score.fullTime.away ?? 0
             let newAway = fixture.score.fullTime.away ?? 0
+            let total = newHome + newAway
+            // ESPN posts the score immediately but the scorer details minutes
+            // later; gate on goals already announced so late details never
+            // re-notify
+            let announced = announcedGoals[fixture.id] ?? (oldHome + oldAway)
 
-            let newGoals = fixture.goals.filter { !prior.goals.contains($0) }
-            if !newGoals.isEmpty {
-                for goal in newGoals {
-                    notifier.notify(title: "⚽️ \(goal.label)", body: fixture.summaryLine)
+            if total > announced {
+                let newEvents = fixture.goals.filter { !prior.goals.contains($0) }
+                if newEvents.count >= total - announced {
+                    for goal in newEvents.suffix(total - announced) {
+                        notifier.notify(title: "⚽️ \(goal.label)", body: fixture.summaryLine)
+                    }
+                } else {
+                    if newHome > oldHome {
+                        notifier.notify(title: "⚽️ Goal — \(fixture.homeTeam.displayName)", body: fixture.summaryLine)
+                    }
+                    if newAway > oldAway {
+                        notifier.notify(title: "⚽️ Goal — \(fixture.awayTeam.displayName)", body: fixture.summaryLine)
+                    }
                 }
-            } else {
-                if newHome > oldHome {
-                    notifier.notify(title: "⚽️ Goal — \(fixture.homeTeam.displayName)", body: fixture.summaryLine)
-                }
-                if newAway > oldAway {
-                    notifier.notify(title: "⚽️ Goal — \(fixture.awayTeam.displayName)", body: fixture.summaryLine)
-                }
-            }
-            if newHome < oldHome || newAway < oldAway {
+                announcedGoals[fixture.id] = total
+            } else if total < announced {
                 notifier.notify(title: "Goal disallowed", body: fixture.summaryLine)
+                announcedGoals[fixture.id] = total
             }
             if !prior.status.isLive, fixture.isLive {
                 notifier.notify(title: "Kickoff", body: fixture.summaryLine)
