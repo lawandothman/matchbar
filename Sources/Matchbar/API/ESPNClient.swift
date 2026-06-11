@@ -28,7 +28,10 @@ struct ESPNClient: ScoreProvider {
     func fixtures(from: Date, to: Date) async throws -> [Fixture] {
         let range = "\(Self.dayFormatter.string(from: from))-\(Self.dayFormatter.string(from: to))"
         var components = URLComponents(string: Self.scoreboardURL)!
-        components.queryItems = [URLQueryItem(name: "dates", value: range)]
+        components.queryItems = [
+            URLQueryItem(name: "dates", value: range),
+            URLQueryItem(name: "limit", value: "200"),
+        ]
         let response: ESPNScoreboardResponse = try await get(components.url!)
         return response.events.compactMap(fixture)
     }
