@@ -142,10 +142,10 @@
   .popover .p-head span { font-size: 10.5px; color: var(--panel-soft); }
   .popover .p-rule { height: 1px; background: var(--rule); }
   .popover .tabs {
-    display: flex; gap: 2px; margin: 8px 12px 2px;
+    display: flex; gap: 2px; margin: 8px auto 2px; width: fit-content;
     background: oklch(100% 0 0 / 0.07); border-radius: 7px; padding: 2px;
   }
-  .popover .tabs span { flex: 1; text-align: center; padding: 3px 0; border-radius: 5px; font-size: 11px; }
+  .popover .tabs span { text-align: center; padding: 3px 16px; border-radius: 5px; font-size: 11px; }
   .popover .tabs .on { background: var(--accent-blue); font-weight: 550; }
   .popover .sec {
     font-size: 8.5px; font-weight: 600; letter-spacing: 0.1em; color: var(--panel-soft);
@@ -162,6 +162,10 @@
   .popover .row .s { text-align: center; }
   .popover .row .s.on { font-weight: 650; }
   .popover .row .g { font-size: 8.5px; color: var(--panel-soft); text-align: right; }
+  .popover .scorers {
+    margin-top: -4px; padding: 0 12px 4px;
+    font-size: 9.5px; color: var(--panel-soft); text-align: center;
+  }
   .popover .p-foot {
     display: flex; justify-content: space-between; padding: 8px 12px;
     font-size: 10px; color: var(--panel-soft);
@@ -227,7 +231,7 @@
   <span class="menus"><span>File</span><span>Edit</span><span>View</span><span>Go</span><span>Window</span><span>Help</span></span>
   <span class="spacer"></span>
   <span class="status">
-    <span id="mb-score">🇲🇽 0–0 🇿🇦 66′</span>
+    <span id="mb-score">🇲🇽 1–0 🇿🇦 66′</span>
     <span class="clock"><span class="date">Thu 11 Jun </span><span id="mb-clock">20:43</span></span>
   </span>
 </div>
@@ -273,9 +277,10 @@
         <div class="sec">TODAY</div>
         <div class="row">
           <span class="live" id="po-min">66′</span>
-          <span class="h">Mexico 🇲🇽</span><span class="s on" id="po-score">0–0</span><span>🇿🇦 South Africa</span>
+          <span class="h">Mexico 🇲🇽</span><span class="s on" id="po-score">1–0</span><span>🇿🇦 South Africa</span>
           <span class="g">Group A</span>
         </div>
+        <div class="scorers" id="po-scorers">J. Quiñones 9′</div>
         <div class="sec">TOMORROW</div>
         <div class="row"><span class="t">03:00</span><span class="h">South Korea 🇰🇷</span><span class="s">v</span><span>🇨🇿 Czechia</span><span class="g">Group A</span></div>
         <div class="row"><span class="t">20:00</span><span class="h">Canada 🇨🇦</span><span class="s">v</span><span>🇧🇦 Bosnia-Herz</span><span class="g">Group B</span></div>
@@ -284,7 +289,7 @@
         <div class="row"><span class="t">20:00</span><span class="h">Qatar 🇶🇦</span><span class="s">v</span><span>🇨🇭 Switzerland</span><span class="g">Group B</span></div>
         <div class="row"><span class="t">23:00</span><span class="h">Brazil 🇧🇷</span><span class="s">v</span><span>🇲🇦 Morocco</span><span class="g">Group C</span></div>
         <div class="p-rule"></div>
-        <div class="p-foot"><span>Updated <span id="po-upd">20:43</span></span><span><b>Refresh</b><b>Quit</b></span></div>
+        <div class="p-foot"><span>Updated <span id="po-upd">20:43</span></span><span><b>⚙</b><b>Refresh</b><b>Quit</b></span></div>
       </div>
     </div>
   </div>
@@ -293,7 +298,7 @@
 
 <div class="toast" id="toast" role="status">
   <img src="assets/icon.png" alt="">
-  <div><b id="toast-title">⚽️ Giménez 67′</b><small id="toast-body">🇲🇽 Mexico 1–0 🇿🇦 South Africa</small></div>
+  <div><b id="toast-title">⚽️ R. Jiménez 67′</b><small id="toast-body">🇲🇽 Mexico 2–0 🇿🇦 South Africa</small></div>
 </div>
 
 <script>
@@ -315,9 +320,11 @@
   let minute = 66, scored = false;
   function paint() {
     const m = minute + "′";
-    const score = scored ? "1–0" : "0–0";
+    const score = scored ? "2–0" : "1–0";
     mb.textContent = `🇲🇽 ${score} 🇿🇦 ${m}`;
     poMin.textContent = m; poScore.textContent = score; fMin.textContent = m;
+    document.getElementById("po-scorers").textContent =
+      scored ? "J. Quiñones 9′, R. Jiménez 67′" : "J. Quiñones 9′";
   }
 
   if (reduced) {
