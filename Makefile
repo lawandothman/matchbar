@@ -13,13 +13,15 @@ icon:
 
 app: build
 	rm -rf $(APP).app
-	mkdir -p $(APP).app/Contents/MacOS $(APP).app/Contents/Resources
+	mkdir -p $(APP).app/Contents/MacOS $(APP).app/Contents/Resources $(APP).app/Contents/Frameworks
 	cp .build/release/$(APP) $(APP).app/Contents/MacOS/
 	cp Resources/Info.plist $(APP).app/Contents/
 	cp Resources/AppIcon.icns $(APP).app/Contents/Resources/
-	codesign --force --sign - $(APP).app
+	cp -R "$$(find .build/artifacts -type d -name Sparkle.framework -path '*macos*' | head -1)" $(APP).app/Contents/Frameworks/
+	codesign --force --deep --sign - $(APP).app
 
 release: app
+	codesign --force --options runtime --deep --sign "$(IDENTITY)" $(APP).app/Contents/Frameworks/Sparkle.framework
 	codesign --force --options runtime --sign "$(IDENTITY)" $(APP).app
 	rm -rf dist $(APP).dmg
 	mkdir dist

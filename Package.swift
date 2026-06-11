@@ -4,10 +4,20 @@ import PackageDescription
 let package = Package(
     name: "WorldCupApp",
     platforms: [.macOS(.v14)],
+    dependencies: [
+        .package(url: "https://github.com/sparkle-project/Sparkle", from: "2.7.0")
+    ],
     targets: [
         .executableTarget(
             name: "WorldCupApp",
-            swiftSettings: [.swiftLanguageMode(.v5)]
+            dependencies: [
+                .product(name: "Sparkle", package: "Sparkle")
+            ],
+            swiftSettings: [.swiftLanguageMode(.v5)],
+            linkerSettings: [
+                // Sparkle.framework is bundled into Contents/Frameworks by `make app`
+                .unsafeFlags(["-Xlinker", "-rpath", "-Xlinker", "@executable_path/../Frameworks"])
+            ]
         )
     ]
 )

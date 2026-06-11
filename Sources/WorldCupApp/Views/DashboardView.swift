@@ -99,6 +99,10 @@ struct DashboardView: View {
                     .foregroundStyle(.secondary)
             }
             Spacer()
+            Button("Check for updates") {
+                UpdateManager.checkForUpdates()
+            }
+            .font(.caption)
             Button("Refresh") {
                 Task { await store.refresh() }
             }

@@ -6,6 +6,7 @@ struct WorldCupApp: App {
 
     init() {
         NSApplication.shared.setActivationPolicy(.accessory)
+        UpdateManager.start()
     }
 
     var body: some Scene {

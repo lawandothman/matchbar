@@ -18,5 +18,15 @@
 	<string>14.0</string>
 	<key>LSUIElement</key>
 	<true/>
+	<key>SUAutomaticallyUpdate</key>
+	<true/>
+	<key>SUEnableAutomaticChecks</key>
+	<true/>
+	<key>SUFeedURL</key>
+	<string>https://lawandothman.github.io/world-cup-app/appcast.xml</string>
+	<key>SUPublicEDKey</key>
+	<string>GnZfQCCwYcondGFsDdRXDtuPO72L2UL7IpOvELaOPbQ=</string>
+	<key>SUScheduledCheckInterval</key>
+	<integer>3600</integer>
 </dict>
 </plist>
