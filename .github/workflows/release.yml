@@ -74,7 +74,7 @@ jobs:
           curl -sL -o /tmp/sparkle.tar.xz https://github.com/sparkle-project/Sparkle/releases/download/2.7.0/Sparkle-2.7.0.tar.xz
           mkdir /tmp/sparkle && tar -xf /tmp/sparkle.tar.xz -C /tmp/sparkle
           SIG=$(echo "$SPARKLE_KEY" | /tmp/sparkle/bin/sign_update --ed-key-file - Matchbar.dmg)
-          URL="https://matchbar.vercel.app/Matchbar.dmg"
+          URL="https://matchbar-xi.vercel.app/Matchbar.dmg"
           git fetch origin main
           git checkout main
           cp Matchbar.dmg docs/Matchbar.dmg
