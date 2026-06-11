@@ -23,12 +23,8 @@ app: build
 release: app
 	codesign --force --options runtime --deep --sign "$(IDENTITY)" $(APP).app/Contents/Frameworks/Sparkle.framework
 	codesign --force --options runtime --sign "$(IDENTITY)" $(APP).app
-	rm -rf dist $(APP).dmg
-	mkdir dist
-	cp -R $(APP).app dist/
-	ln -s /Applications dist/Applications
-	hdiutil create -volname "Matchbar" -srcfolder dist -ov -format UDZO $(APP).dmg
-	rm -rf dist
+	rm -f $(APP).dmg
+	npx --yes appdmg scripts/dmg.json $(APP).dmg
 	xcrun notarytool submit $(APP).dmg --keychain-profile $(PROFILE) --wait
 	xcrun stapler staple $(APP).dmg
 	@echo "$(APP).dmg is notarized and ready to distribute"

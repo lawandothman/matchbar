@@ -42,11 +42,7 @@ jobs:
           codesign --force --options runtime --sign "Developer ID Application" Matchbar.app
 
       - name: Package as DMG
-        run: |
-          mkdir dist
-          cp -R Matchbar.app dist/
-          ln -s /Applications dist/Applications
-          hdiutil create -volname "Matchbar" -srcfolder dist -ov -format UDZO Matchbar.dmg
+        run: npx --yes appdmg scripts/dmg.json Matchbar.dmg
 
       - name: Notarize and staple
         env:

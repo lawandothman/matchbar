@@ -1,0 +1,14 @@
+{
+  "title": "Matchbar",
+  "icon": "../Resources/AppIcon.icns",
+  "background": "../Resources/DMGBackground.tiff",
+  "icon-size": 96,
+  "format": "UDZO",
+  "window": {
+    "size": { "width": 560, "height": 360 }
+  },
+  "contents": [
+    { "x": 140, "y": 170, "type": "file", "path": "../Matchbar.app" },
+    { "x": 420, "y": 170, "type": "link", "path": "/Applications" }
+  ]
+}
