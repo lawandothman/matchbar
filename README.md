@@ -11,3 +11,10 @@ FOOTBALL_DATA_TOKEN=xxx swift run
 ```
 
 or run the app and paste the token into the popover.
+
+## Build
+
+```sh
+make run   # dev
+make app   # bundle WorldCupApp.app
+```
