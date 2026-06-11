@@ -1,16 +1,8 @@
 # World Cup App
 
-World Cup 2026 in your menu bar. Shows live scores while matches are on, today's fixtures in a popover.
+World Cup 2026 in your menu bar. Shows live scores while matches are on, fixtures and group tables in a popover, and sends goal notifications.
 
-## Setup
-
-Grab a free API token from [football-data.org](https://www.football-data.org/client/register), then either:
-
-```sh
-FOOTBALL_DATA_TOKEN=xxx swift run
-```
-
-or run the app and paste the token into the popover.
+No API key, no setup — data comes from ESPN's public scoreboard API.
 
 ## Build
 

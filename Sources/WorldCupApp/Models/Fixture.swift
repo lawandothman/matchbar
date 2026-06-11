@@ -4,8 +4,8 @@ struct Fixture: Decodable, Identifiable, Equatable {
     let id: Int
     let utcDate: Date
     let status: FixtureStatus
-    let stage: FixtureStage
-    let group: String?
+    var stage: FixtureStage
+    var group: String?
     let homeTeam: FixtureTeam
     let awayTeam: FixtureTeam
     let score: FixtureScore

@@ -9,23 +9,17 @@ struct DashboardView: View {
             header
             Divider()
 
-            Group {
-                if !store.hasToken {
-                    TokenPromptView(store: store)
-                } else {
-                    VStack(alignment: .leading, spacing: 0) {
-                        tabPicker
-                        switch tab {
-                        case .matches:
-                            if store.sections.isEmpty {
-                                emptyState
-                            } else {
-                                fixtureList
-                            }
-                        case .groups:
-                            StandingsView(standings: store.standings)
-                        }
+            VStack(alignment: .leading, spacing: 0) {
+                tabPicker
+                switch tab {
+                case .matches:
+                    if store.sections.isEmpty {
+                        emptyState
+                    } else {
+                        fixtureList
                     }
+                case .groups:
+                    StandingsView(standings: store.standings)
                 }
             }
             .frame(maxWidth: .infinity, minHeight: 380, alignment: .top)

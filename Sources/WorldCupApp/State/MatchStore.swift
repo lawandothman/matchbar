@@ -8,9 +8,9 @@ final class MatchStore {
     private(set) var standings: [GroupStanding] = []
     private(set) var lastError: String?
     private(set) var lastUpdated: Date?
-    private(set) var hasToken = false
 
     private var pollTask: Task<Void, Never>?
+    private let provider: any ScoreProvider = ESPNClient()
     private let notifier = MatchNotifier()
 
     var liveFixtures: [Fixture] { fixtures.filter(\.isLive) }
@@ -27,7 +27,6 @@ final class MatchStore {
     }
 
     init() {
-        hasToken = TokenStore.token != nil
         notifier.requestAuthorization()
         pollTask = Task { [weak self] in
             while !Task.isCancelled {
@@ -38,35 +37,47 @@ final class MatchStore {
         }
     }
 
-    func saveToken(_ token: String) {
-        TokenStore.save(token)
-        hasToken = TokenStore.token != nil
-        Task { await refresh() }
-    }
-
     func refresh() async {
-        guard let token = TokenStore.token else {
-            hasToken = false
-            return
-        }
-        hasToken = true
-
-        let client = FootballDataClient(token: token)
         let now = Date()
         do {
             let previous = Dictionary(uniqueKeysWithValues: fixtures.map { ($0.id, $0) })
-            fixtures = try await client.fixtures(
+            fixtures = try await provider.fixtures(
                 from: now.addingTimeInterval(-86400),
                 to: now.addingTimeInterval(7 * 86400)
             )
             if !previous.isEmpty {
                 announce(changesFrom: previous)
             }
-            standings = try await client.standings()
+            standings = try await provider.standings()
+            stampGroups()
             lastUpdated = Date()
             lastError = nil
         } catch {
             lastError = error.localizedDescription
+        }
+    }
+
+    // ESPN's scoreboard carries no group info per fixture; derive it from the
+    // standings. Both teams sharing a group marks a group-stage match.
+    private func stampGroups() {
+        var groupByTeam: [String: String] = [:]
+        for group in standings {
+            for row in group.table {
+                if let tla = row.team.tla {
+                    groupByTeam[tla] = group.label
+                }
+            }
+        }
+        fixtures = fixtures.map { fixture in
+            guard let homeTLA = fixture.homeTeam.tla,
+                  let awayTLA = fixture.awayTeam.tla,
+                  let homeGroup = groupByTeam[homeTLA],
+                  homeGroup == groupByTeam[awayTLA]
+            else { return fixture }
+            var stamped = fixture
+            stamped.stage = .groupStage
+            stamped.group = homeGroup
+            return stamped
         }
     }
 
