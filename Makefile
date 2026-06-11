@@ -1,4 +1,4 @@
-APP = WorldCupApp
+APP = Matchbar
 IDENTITY ?= Developer ID Application
 PROFILE ?= worldcup-notary
 
@@ -27,7 +27,7 @@ release: app
 	mkdir dist
 	cp -R $(APP).app dist/
 	ln -s /Applications dist/Applications
-	hdiutil create -volname "World Cup App" -srcfolder dist -ov -format UDZO $(APP).dmg
+	hdiutil create -volname "Matchbar" -srcfolder dist -ov -format UDZO $(APP).dmg
 	rm -rf dist
 	xcrun notarytool submit $(APP).dmg --keychain-profile $(PROFILE) --wait
 	xcrun stapler staple $(APP).dmg

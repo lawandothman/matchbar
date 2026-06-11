@@ -1,7 +1,7 @@
 import SwiftUI
 
 @main
-struct WorldCupApp: App {
+struct MatchbarApp: App {
     @State private var store = MatchStore()
 
     init() {

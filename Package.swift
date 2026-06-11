@@ -2,14 +2,14 @@
 import PackageDescription
 
 let package = Package(
-    name: "WorldCupApp",
+    name: "Matchbar",
     platforms: [.macOS(.v14)],
     dependencies: [
         .package(url: "https://github.com/sparkle-project/Sparkle", from: "2.7.0")
     ],
     targets: [
         .executableTarget(
-            name: "WorldCupApp",
+            name: "Matchbar",
             dependencies: [
                 .product(name: "Sparkle", package: "Sparkle")
             ],

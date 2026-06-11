@@ -1,4 +1,4 @@
-# World Cup App
+# Matchbar
 
 World Cup 2026 in your menu bar. Shows live scores while matches are on, fixtures and group tables in a popover, and sends goal notifications.
 
@@ -8,7 +8,7 @@ No API key, no setup — data comes from ESPN's public scoreboard API.
 
 ```sh
 make run   # dev
-make app   # bundle WorldCupApp.app
+make app   # bundle Matchbar.app
 ```
 
 ## Notifications
@@ -27,7 +27,7 @@ One-time setup:
      --key AuthKey_XXXXXXXXXX.p8 --key-id XXXXXXXXXX --issuer ISSUER-UUID
    ```
 
-Then `make release` signs, notarizes, staples, and produces a distributable `WorldCupApp.dmg`.
+Then `make release` signs, notarizes, staples, and produces a distributable `Matchbar.dmg`.
 
 ### CI releases
 
@@ -40,5 +40,4 @@ Pushing a tag like `v0.2.0` builds, signs, notarizes, and publishes a GitHub Rel
 | `NOTARY_KEY` | contents of the App Store Connect API `.p8` key |
 | `NOTARY_KEY_ID` | the key's ID |
 | `NOTARY_ISSUER_ID` | issuer ID from the App Store Connect API page |
-| `RELEASES_TOKEN` | fine-grained PAT with contents write on world-cup-app-releases |
 | `SPARKLE_KEY` | Sparkle EdDSA private key (`generate_keys -x`) |
