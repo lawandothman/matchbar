@@ -1,6 +1,6 @@
 import Foundation
 
-struct StandingRow: Decodable, Identifiable, Equatable {
+struct StandingRow: Identifiable, Equatable {
     let position: Int
     let team: FixtureTeam
     let playedGames: Int

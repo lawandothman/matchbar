@@ -1,6 +1,6 @@
 import Foundation
 
-struct FixtureScore: Decodable, Equatable {
+struct FixtureScore: Equatable {
     let fullTime: ScoreValues
     let duration: ScoreDuration?
     let penalties: ScoreValues?

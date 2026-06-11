@@ -38,7 +38,6 @@ struct ESPNClient: ScoreProvider {
         return response.children.map { child in
             GroupStanding(
                 group: child.name,
-                type: nil,
                 table: child.standings.entries.enumerated().map { index, entry in
                     standingRow(from: entry, fallbackPosition: index + 1)
                 }

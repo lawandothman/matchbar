@@ -1,6 +1,6 @@
 import Foundation
 
-struct Fixture: Decodable, Identifiable, Equatable {
+struct Fixture: Identifiable, Equatable {
     let id: Int
     let utcDate: Date
     let status: FixtureStatus

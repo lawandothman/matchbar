@@ -1,6 +1,6 @@
 import Foundation
 
-struct ScoreValues: Decodable, Equatable {
+struct ScoreValues: Equatable {
     let home: Int?
     let away: Int?
 }

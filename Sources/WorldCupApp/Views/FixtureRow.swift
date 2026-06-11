@@ -75,7 +75,7 @@ struct FixtureRow: View {
                 .foregroundStyle(.secondary)
                 .monospacedDigit()
         default:
-            Text(fixture.status.rawValue.prefix(4))
+            Text(fixture.status.rawValue.prefix(4).uppercased())
                 .font(.system(size: 11))
                 .foregroundStyle(.secondary)
         }
