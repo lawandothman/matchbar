@@ -3,6 +3,7 @@ import SwiftUI
 struct DashboardView: View {
     let store: MatchStore
     @State private var tab: DashboardTab = .matches
+    @State private var launchAtLogin = LaunchAtLogin.isEnabled
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
@@ -99,10 +100,7 @@ struct DashboardView: View {
                     .foregroundStyle(.secondary)
             }
             Spacer()
-            Button("Check for updates") {
-                UpdateManager.checkForUpdates()
-            }
-            .font(.caption)
+            settingsMenu
             Button("Refresh") {
                 Task { await store.refresh() }
             }
@@ -115,5 +113,24 @@ struct DashboardView: View {
         .buttonStyle(.plain)
         .padding(.horizontal, 12)
         .padding(.vertical, 8)
+    }
+
+    private var settingsMenu: some View {
+        Menu {
+            Toggle("Launch at login", isOn: $launchAtLogin)
+            Button("Check for updates") {
+                UpdateManager.checkForUpdates()
+            }
+        } label: {
+            Image(systemName: "gearshape")
+                .font(.system(size: 11))
+        }
+        .menuIndicator(.hidden)
+        .fixedSize()
+        .onChange(of: launchAtLogin) { _, enabled in
+            if !LaunchAtLogin.set(enabled) {
+                launchAtLogin = LaunchAtLogin.isEnabled
+            }
+        }
     }
 }
