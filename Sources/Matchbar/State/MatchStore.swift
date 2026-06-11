@@ -43,7 +43,7 @@ final class MatchStore {
             let previous = Dictionary(uniqueKeysWithValues: fixtures.map { ($0.id, $0) })
             fixtures = try await provider.fixtures(
                 from: now.addingTimeInterval(-86400),
-                to: now.addingTimeInterval(7 * 86400)
+                to: now.addingTimeInterval(40 * 86400)
             )
             if !previous.isEmpty {
                 announce(changesFrom: previous)
