@@ -32,9 +32,16 @@ struct DashboardView: View {
     }
 
     private var tabPicker: some View {
-        TabPicker(selection: $tab)
-            .padding(.horizontal, 12)
-            .padding(.top, 8)
+        Picker("", selection: $tab) {
+            Text("Matches").tag(DashboardTab.matches)
+            Text("Groups").tag(DashboardTab.groups)
+        }
+        .pickerStyle(.segmented)
+        .labelsHidden()
+        .controlSize(.small)
+        .frame(maxWidth: .infinity)
+        .padding(.horizontal, 12)
+        .padding(.top, 8)
     }
 
     private var header: some View {
