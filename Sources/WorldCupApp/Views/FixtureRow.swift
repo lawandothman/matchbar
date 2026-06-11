@@ -44,6 +44,14 @@ struct FixtureRow: View {
             Text("HT")
                 .font(.system(size: 10, weight: .bold))
                 .foregroundStyle(.green)
+        case .extraTime:
+            Text("ET")
+                .font(.system(size: 10, weight: .bold))
+                .foregroundStyle(.green)
+        case .penaltyShootout:
+            Text("PENS")
+                .font(.system(size: 10, weight: .bold))
+                .foregroundStyle(.green)
         case .finished:
             Text("FT")
                 .font(.system(size: 10, weight: .semibold))

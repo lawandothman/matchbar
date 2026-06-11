@@ -5,6 +5,8 @@ enum FixtureStatus: String, Decodable, Equatable {
     case timed = "TIMED"
     case inPlay = "IN_PLAY"
     case paused = "PAUSED"
+    case extraTime = "EXTRA_TIME"
+    case penaltyShootout = "PENALTY_SHOOTOUT"
     case finished = "FINISHED"
     case suspended = "SUSPENDED"
     case postponed = "POSTPONED"
@@ -17,5 +19,10 @@ enum FixtureStatus: String, Decodable, Equatable {
         self = FixtureStatus(rawValue: raw) ?? .unknown
     }
 
-    var isLive: Bool { self == .inPlay || self == .paused }
+    var isLive: Bool {
+        switch self {
+        case .inPlay, .paused, .extraTime, .penaltyShootout: return true
+        default: return false
+        }
+    }
 }
