@@ -68,12 +68,14 @@
   .shell { max-width: 1200px; margin: 0 auto; padding: 0 clamp(20px, 4vw, 48px); }
 
   /* ── hero: the desktop ──────────────────────── */
-  .hero {
-    position: relative;
-    min-height: clamp(560px, 86vh, 800px);
-    display: flex; align-items: center;
+  .hero { min-height: clamp(560px, 86vh, 800px); display: flex; align-items: center; }
+  .hero-grid {
+    width: 100%;
+    display: grid; grid-template-columns: minmax(0, 1fr) 340px;
+    gap: clamp(40px, 7vw, 120px);
+    align-items: center;
   }
-  .hero-copy { max-width: min(560px, calc(100vw - 480px)); }
+  .hero-copy { max-width: 560px; }
   h1 {
     font-size: clamp(2.4rem, 5.2vw, 3.9rem);
     font-weight: 600;
@@ -117,16 +119,7 @@
   @keyframes rise { from { opacity: 0; transform: translateY(14px); } }
   @keyframes drop { from { opacity: 0; transform: translateY(-12px); } }
 
-  /* ── the popover, hung from its status item ─── */
-  .po-wrap { position: absolute; top: 12px; right: 24px; z-index: 20; }
-  .po-arrow {
-    position: absolute; top: -5px; right: 60px;
-    width: 11px; height: 11px;
-    background: var(--panel);
-    border-top: 1px solid var(--rule); border-left: 1px solid var(--rule);
-    transform: rotate(45deg);
-    border-radius: 2px 0 0 0;
-  }
+  /* ── the popover ────────────────────────────── */
   .popover {
     width: 340px;
     background: var(--panel); color: var(--panel-ink);
@@ -219,12 +212,11 @@
 
   /* ── narrow screens: popover joins the flow ──── */
   @media (max-width: 760px) {
-    .hero { min-height: 0; display: block; padding: 48px 0 0; }
+    .hero { min-height: 0; display: block; padding: 48px 0; }
+    .hero-grid { grid-template-columns: 1fr; gap: 48px; }
     .hero-copy { max-width: none; }
-    .po-wrap { position: static; margin: 48px auto 0; width: 340px; max-width: 100%; animation: none; }
-    .po-arrow { display: none; }
+    .po-wrap { width: 340px; max-width: 100%; margin: 0 auto; animation: none; }
     .toast { display: none; }
-    .install { grid-template-columns: 1fr; }
   }
 
   @media (prefers-reduced-motion: reduce) {
@@ -247,7 +239,7 @@
 
 <main>
   <section class="hero">
-    <div class="shell" style="width: 100%;">
+    <div class="shell hero-grid">
       <div class="hero-copy">
         <h1>The World Cup,<br>in your menu bar.</h1>
         <p class="dek">Live scores beside your clock while a match is on. A tap on the shoulder, <strong>scorer and minute</strong>, when someone finds the net. No account, no API key, no Electron. <strong>0.3&nbsp;MB.</strong></p>
@@ -256,11 +248,9 @@
         </div>
         <p class="brew">or <code id="brew" title="click to copy">brew install --cask lawandothman/tap/world-cup-app</code> <span class="soon" id="brew-note">- tap landing soon</span></p>
       </div>
-    </div>
 
-    <div class="po-wrap" id="po-wrap">
-      <div class="po-arrow" id="po-arrow"></div>
-      <div class="popover" aria-label="The app's popover">
+      <div class="po-wrap">
+        <div class="popover" aria-label="The app's popover">
         <div class="p-head"><b>World Cup 2026</b><span>Thursday, Jun 11</span></div>
         <div class="p-rule"></div>
         <div class="tabs"><span class="on">Matches</span><span>Groups</span></div>
@@ -279,6 +269,7 @@
         <div class="row"><span class="t">23:00</span><span class="h">Brazil 🇧🇷</span><span class="s">v</span><span>🇲🇦 Morocco</span><span class="g">Group C</span></div>
         <div class="p-rule"></div>
         <div class="p-foot"><span>Updated <span id="po-upd">20:43</span></span><span><b>Refresh</b><b>Quit</b></span></div>
+        </div>
       </div>
     </div>
   </section>
@@ -343,21 +334,6 @@
   const fMin = document.getElementById("f-min");
   const toast = document.getElementById("toast");
 
-  // hang the popover from its status item, arrow pointing at its center
-  function anchor() {
-    const wrap = document.getElementById("po-wrap");
-    const arrow = document.getElementById("po-arrow");
-    if (innerWidth <= 760) { wrap.style.right = ""; return; }
-    const rect = mb.getBoundingClientRect();
-    const itemCenter = innerWidth - (rect.left + rect.width / 2); // from right edge
-    const right = Math.max(12, itemCenter - 170);                  // center 340px panel on it
-    wrap.style.right = right + "px";
-    arrow.style.right = (itemCenter - right - 6) + "px";
-  }
-  addEventListener("resize", anchor);
-  addEventListener("load", anchor);
-  anchor();
-
   function paintClock() {
     const now = new Date();
     const hm = now.toTimeString().slice(0, 5);
@@ -372,7 +348,6 @@
     const score = scored ? "1–0" : "0–0";
     mb.textContent = `🇲🇽 ${score} 🇿🇦 ${m}`;
     poMin.textContent = m; poScore.textContent = score; fMin.textContent = m;
-    anchor();
   }
 
   if (reduced) {
