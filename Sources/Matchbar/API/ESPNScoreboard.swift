@@ -14,6 +14,7 @@ struct ESPNEvent: Decodable {
 struct ESPNStatus: Decodable {
     let type: ESPNStatusType
     let displayClock: String?
+    let clock: Double?
 }
 
 struct ESPNStatusType: Decodable {

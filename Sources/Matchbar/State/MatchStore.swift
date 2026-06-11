@@ -41,10 +41,18 @@ final class MatchStore {
         let now = Date()
         do {
             let previous = Dictionary(uniqueKeysWithValues: fixtures.map { ($0.id, $0) })
-            fixtures = try await provider.fixtures(
+            let fetched = try await provider.fixtures(
                 from: now.addingTimeInterval(-86400),
                 to: now.addingTimeInterval(40 * 86400)
             )
+            // ESPN's CDN occasionally serves a stale snapshot; never let a
+            // fixture move backwards in time
+            fixtures = fetched.map { fixture in
+                guard let prior = previous[fixture.id], isStale(fixture, comparedTo: prior) else {
+                    return fixture
+                }
+                return prior
+            }
             if !previous.isEmpty {
                 announce(changesFrom: previous)
             }
@@ -97,6 +105,18 @@ final class MatchStore {
             stamped.group = homeGroup
             return stamped
         }
+    }
+
+    private func isStale(_ fixture: Fixture, comparedTo prior: Fixture) -> Bool {
+        let notStarted = fixture.status == .timed || fixture.status == .scheduled
+        if (prior.status.isLive || prior.status == .finished) && notStarted {
+            return true
+        }
+        if prior.status.isLive, fixture.status.isLive,
+           let old = prior.clockSeconds, let new = fixture.clockSeconds, new < old {
+            return true
+        }
+        return false
     }
 
     private func announce(changesFrom previous: [Int: Fixture]) {

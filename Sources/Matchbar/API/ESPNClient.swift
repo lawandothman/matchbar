@@ -95,6 +95,7 @@ struct ESPNClient: ScoreProvider {
                 penalties: penalties
             ),
             minute: event.status.type.state == "in" ? event.status.displayClock : nil,
+            clockSeconds: event.status.type.state == "in" ? event.status.clock : nil,
             goals: goals
         )
     }

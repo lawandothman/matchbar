@@ -10,6 +10,7 @@ struct Fixture: Identifiable, Equatable {
     let awayTeam: FixtureTeam
     let score: FixtureScore
     let minute: String?
+    let clockSeconds: Double?
     let goals: [GoalEvent]
 
     var isLive: Bool { status.isLive }
