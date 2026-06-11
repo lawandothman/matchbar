@@ -20,10 +20,23 @@ Goal, kickoff and full-time notifications only work from the bundled app (`make 
 One-time setup:
 
 1. Create a **Developer ID Application** certificate: Xcode → Settings → Accounts → Manage Certificates → + → Developer ID Application.
-2. Create an app-specific password at [appleid.apple.com](https://appleid.apple.com), then store it:
+2. Create an App Store Connect API key (Users and Access → Integrations → App Store Connect API, role Developer), download the `.p8`, then store it:
 
    ```sh
-   xcrun notarytool store-credentials worldcup-notary --apple-id you@example.com --team-id TEAMID
+   xcrun notarytool store-credentials worldcup-notary \
+     --key AuthKey_XXXXXXXXXX.p8 --key-id XXXXXXXXXX --issuer ISSUER-UUID
    ```
 
 Then `make release` signs, notarizes, staples, and produces a distributable `WorldCupApp.zip`.
+
+### CI releases
+
+Pushing a tag like `v0.2.0` builds, signs, notarizes, and publishes a GitHub Release automatically. Required repo secrets:
+
+| Secret | Value |
+|---|---|
+| `DEVELOPER_ID_P12` | base64 of the exported Developer ID Application cert (`base64 -i cert.p12`) |
+| `DEVELOPER_ID_P12_PASSWORD` | password chosen when exporting the .p12 |
+| `NOTARY_KEY` | contents of the App Store Connect API `.p8` key |
+| `NOTARY_KEY_ID` | the key's ID |
+| `NOTARY_ISSUER_ID` | issuer ID from the App Store Connect API page |
