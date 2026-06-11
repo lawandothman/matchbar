@@ -27,8 +27,16 @@ enum TeamNameOverrides {
             if kind == "2" { return "Runner-up \(group)" }
         }
         if upper.hasPrefix("3RD ") {
-            let groups = upper.dropFirst(4).replacingOccurrences(of: "/", with: "")
-            return "3rd \(groups)"
+            return "Best 3rd"
+        }
+        // "RD32 W9", "RD16 W1", "QF W3", "SF L2" - winner/loser of an
+        // earlier knockout match
+        let parts = upper.split(separator: " ")
+        if parts.count == 2,
+           parts[0].hasPrefix("RD") || parts[0] == "QF" || parts[0] == "SF",
+           let kind = parts[1].first, kind == "W" || kind == "L",
+           let number = Int(parts[1].dropFirst()) {
+            return kind == "W" ? "Winner \(number)" : "Loser \(number)"
         }
         return nil
     }
