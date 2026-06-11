@@ -196,10 +196,22 @@
 
   /* narrow screens: stack, scrolling allowed */
   @media (max-width: 760px) {
-    .content { grid-template-columns: 1fr; gap: 44px; padding-top: 40px; }
-    .left { max-width: none; }
-    .po-wrap { width: 340px; max-width: 100%; margin: 0 auto; animation: none; }
+    .content { display: flex; flex-direction: column; padding-top: 40px; }
+    .left { display: contents; }
+    .left > h1 { order: 1; }
+    .po-wrap { order: 2; width: 100%; max-width: 340px; margin: 6px auto 32px; animation: none; }
+    .left > .dek { order: 3; }
+    .left > .cta { order: 4; }
+    .left > .features { order: 5; }
+    .popover { width: 100%; }
+    .frow { grid-template-columns: 52px 1fr; row-gap: 4px; }
+    .frow p { grid-column: 2; }
     .toast { display: none; }
+  }
+  @media (max-width: 480px) {
+    .menubar { gap: 12px; }
+    .menubar .date { display: none; }
+    h1 { font-size: 2rem; }
   }
 
   @media (prefers-reduced-motion: reduce) {
@@ -216,7 +228,7 @@
   <span class="spacer"></span>
   <span class="status">
     <span id="mb-score">🇲🇽 0–0 🇿🇦 66′</span>
-    <span class="clock">Thu 11 Jun <span id="mb-clock">20:43</span></span>
+    <span class="clock"><span class="date">Thu 11 Jun </span><span id="mb-clock">20:43</span></span>
   </span>
 </div>
 
