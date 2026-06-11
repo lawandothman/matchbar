@@ -40,3 +40,5 @@ Pushing a tag like `v0.2.0` builds, signs, notarizes, and publishes a GitHub Rel
 | `NOTARY_KEY` | contents of the App Store Connect API `.p8` key |
 | `NOTARY_KEY_ID` | the key's ID |
 | `NOTARY_ISSUER_ID` | issuer ID from the App Store Connect API page |
+| `RELEASES_TOKEN` | fine-grained PAT with contents write on world-cup-app-releases |
+| `SPARKLE_KEY` | Sparkle EdDSA private key (`generate_keys -x`) |
