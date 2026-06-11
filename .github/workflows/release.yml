@@ -38,6 +38,7 @@ jobs:
       - name: Build and sign
         run: |
           make app
+          codesign --force --options runtime --deep --sign "Developer ID Application" WorldCupApp.app/Contents/Frameworks/Sparkle.framework
           codesign --force --options runtime --sign "Developer ID Application" WorldCupApp.app
 
       - name: Package as DMG
@@ -65,3 +66,35 @@ jobs:
         run: |
           gh release create "$GITHUB_REF_NAME" WorldCupApp.dmg \
             --title "$GITHUB_REF_NAME" --generate-notes
+
+      - name: Publish appcast
+        env:
+          SPARKLE_KEY: ${{ secrets.SPARKLE_KEY }}
+        run: |
+          curl -sL -o /tmp/sparkle.tar.xz https://github.com/sparkle-project/Sparkle/releases/download/2.7.0/Sparkle-2.7.0.tar.xz
+          mkdir /tmp/sparkle && tar -xf /tmp/sparkle.tar.xz -C /tmp/sparkle
+          SIG=$(echo "$SPARKLE_KEY" | /tmp/sparkle/bin/sign_update --ed-key-file - WorldCupApp.dmg)
+          URL="https://github.com/${GITHUB_REPOSITORY}/releases/download/${GITHUB_REF_NAME}/WorldCupApp.dmg"
+          git fetch origin main
+          git checkout main
+          cat > docs/appcast.xml <<EOF
+          <?xml version="1.0" encoding="utf-8"?>
+          <rss version="2.0" xmlns:sparkle="http://www.andymatuschak.org/xml-namespaces/sparkle">
+            <channel>
+              <title>World Cup App</title>
+              <item>
+                <title>${GITHUB_REF_NAME}</title>
+                <sparkle:version>${{ github.run_number }}</sparkle:version>
+                <sparkle:shortVersionString>${GITHUB_REF_NAME#v}</sparkle:shortVersionString>
+                <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
+                <pubDate>$(date -R)</pubDate>
+                <enclosure url="${URL}" ${SIG} type="application/x-apple-diskimage"/>
+              </item>
+            </channel>
+          </rss>
+          EOF
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add docs/appcast.xml
+          git commit -m "appcast ${GITHUB_REF_NAME}"
+          git push origin main
