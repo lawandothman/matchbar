@@ -193,16 +193,8 @@
   .frow p { color: var(--ink-soft); font-weight: 350; font-size: 15px; max-width: 54ch; }
   @media (max-width: 860px) { .frow { grid-template-columns: 60px 1fr; } .frow p { grid-column: 2; } }
 
-  /* ── install ────────────────────────────────── */
-  .install { padding: clamp(48px, 8vh, 100px) 0; max-width: 580px; }
-  .install h3 { font-size: 19px; font-weight: 550; letter-spacing: -0.015em; margin-bottom: 14px; }
-  .install ol { padding-left: 20px; color: var(--ink-soft); font-weight: 350; font-size: 15px; }
-  .install ol li { margin-bottom: 6px; }
-  .install ol li::marker { color: var(--green); font-weight: 650; }
-  .install ol li b { color: var(--ink); font-weight: 500; }
-  .install .fineprint { margin-top: 14px; font-size: 13px; color: var(--ink-faint); }
-
   footer {
+    margin-top: clamp(48px, 8vh, 100px);
     border-top: 1px solid var(--rule);
     padding: 26px 0 60px;
     font-size: 13px; color: var(--ink-faint);
@@ -296,18 +288,6 @@
         <span class="badge">104</span>
         <h2>Every fixture, your timezone</h2>
         <p>The week ahead, sectioned by day. Extra time, penalty shootouts and simultaneous kickoffs all handled.</p>
-      </div>
-    </section>
-
-    <section class="install">
-      <div>
-        <h3>Honest small print</h3>
-        <ol>
-          <li>Free, and stays free.</li>
-          <li>No analytics, no accounts, nothing phones home except the scores.</li>
-          <li>Native Swift. Uses about as much memory as this web page.</li>
-        </ol>
-        <p class="fineprint">Scores via ESPN's public scoreboard feed, polled every 30 seconds during matches.</p>
       </div>
     </section>
 
