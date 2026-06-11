@@ -28,7 +28,8 @@ final class MatchStore {
         pollTask = Task { [weak self] in
             while !Task.isCancelled {
                 await self?.refresh()
-                try? await Task.sleep(for: .seconds(60))
+                let interval: Double = self?.liveFixtures.isEmpty == false ? 30 : 60
+                try? await Task.sleep(for: .seconds(interval))
             }
         }
     }
