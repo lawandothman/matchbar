@@ -62,6 +62,18 @@ struct ESPNClient: ScoreProvider {
             penalties = ScoreValues(home: homePens, away: awayPens)
         }
 
+        let goals: [GoalEvent] = (competition.details ?? [])
+            .filter { $0.scoringPlay == true }
+            .map { detail in
+                GoalEvent(
+                    scorer: detail.athletesInvolved?.first?.displayName,
+                    minute: detail.clock?.displayValue,
+                    isHome: detail.team?.id != nil && detail.team?.id == home.team.id,
+                    isOwnGoal: detail.ownGoal == true,
+                    isPenalty: detail.penaltyKick == true
+                )
+            }
+
         return Fixture(
             id: id,
             utcDate: date,
@@ -77,7 +89,9 @@ struct ESPNClient: ScoreProvider {
                 ),
                 duration: penalties == nil ? .regular : .penaltyShootout,
                 penalties: penalties
-            )
+            ),
+            minute: event.status.type.state == "in" ? event.status.displayClock : nil,
+            goals: goals
         )
     }
 

@@ -9,6 +9,8 @@ struct Fixture: Identifiable, Equatable {
     let homeTeam: FixtureTeam
     let awayTeam: FixtureTeam
     let score: FixtureScore
+    let minute: String?
+    let goals: [GoalEvent]
 
     var isLive: Bool { status.isLive }
 
