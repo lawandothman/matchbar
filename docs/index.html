@@ -1,0 +1,405 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>World Cup App - live scores in your Mac menu bar</title>
+<meta name="description" content="A tiny native Mac app: live World Cup 2026 scores in the menu bar, goal notifications with scorer and minute, all twelve group tables. No account, no API key, 0.3 MB.">
+<meta property="og:title" content="World Cup App">
+<meta property="og:description" content="The World Cup, in your Mac menu bar. Live scores, goal notifications, group tables. Free, native, 0.3 MB.">
+<meta property="og:image" content="assets/icon.png">
+<meta name="theme-color" content="#101114">
+<link rel="icon" href="assets/icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@300..700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: oklch(16.5% 0.008 270);
+    --ink: oklch(94% 0.004 270);
+    --ink-soft: oklch(71% 0.006 270);
+    --ink-faint: oklch(54% 0.006 270);
+    --rule: oklch(100% 0 0 / 0.09);
+    --green: oklch(74% 0.19 152);
+    --bar-h: 30px;
+    --panel: oklch(22% 0.01 270);
+    --panel-ink: oklch(93% 0.005 270);
+    --panel-soft: oklch(66% 0.008 270);
+    --accent-blue: oklch(58% 0.19 259);
+  }
+  * { margin: 0; box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    background: var(--bg);
+    color: var(--ink);
+    font-family: "Geist", sans-serif;
+    font-size: 16px;
+    line-height: 1.55;
+    -webkit-font-smoothing: antialiased;
+    overflow-x: hidden;
+  }
+  a { color: inherit; }
+  ::selection { background: oklch(74% 0.19 152 / 0.25); }
+
+  /* ── menu bar ───────────────────────────────── */
+  .menubar {
+    position: fixed; inset: 0 0 auto 0; height: var(--bar-h); z-index: 30;
+    background: oklch(12% 0.006 270 / 0.92);
+    -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--rule);
+    color: oklch(88% 0.004 270);
+    display: flex; align-items: center; gap: 18px;
+    padding: 0 14px;
+    font-size: 13px; letter-spacing: 0.01em;
+    user-select: none;
+  }
+  .menubar svg { width: 13px; height: 16px; fill: currentColor; flex: none; }
+  .menubar .appname { font-weight: 600; }
+  .menubar .menus { display: flex; gap: 16px; opacity: 0.5; }
+  .menubar .spacer { flex: 1; }
+  .menubar .status { display: flex; gap: 14px; align-items: center; }
+  .menubar #mb-score { font-variant-numeric: tabular-nums; font-weight: 500; }
+  .menubar #mb-score.scored { animation: pulse 0.9s cubic-bezier(0.22,1,0.36,1); }
+  .menubar .clock { font-variant-numeric: tabular-nums; opacity: 0.8; }
+  @keyframes pulse { 0% { color: var(--green); } 100% { color: inherit; } }
+  @media (max-width: 720px) { .menubar .menus { display: none; } }
+
+  main { padding-top: var(--bar-h); }
+  .shell { max-width: 1200px; margin: 0 auto; padding: 0 clamp(20px, 4vw, 48px); }
+
+  /* ── hero: the desktop ──────────────────────── */
+  .hero {
+    position: relative;
+    min-height: clamp(560px, 86vh, 800px);
+    display: flex; align-items: center;
+  }
+  .hero-copy { max-width: min(560px, calc(100vw - 480px)); }
+  h1 {
+    font-size: clamp(2.4rem, 5.2vw, 3.9rem);
+    font-weight: 600;
+    line-height: 1.04;
+    letter-spacing: -0.028em;
+    margin-bottom: 22px;
+  }
+  .dek {
+    font-size: clamp(1.02rem, 1.5vw, 1.15rem);
+    font-weight: 350;
+    color: var(--ink-soft);
+    max-width: 46ch;
+    letter-spacing: -0.005em;
+  }
+  .dek strong { color: var(--ink); font-weight: 500; }
+  .cta { margin-top: 36px; }
+  .btn {
+    display: inline-block; background: var(--ink); color: var(--bg);
+    text-decoration: none; font-weight: 550; font-size: 15px;
+    letter-spacing: -0.01em;
+    padding: 12px 24px; border-radius: 9px;
+    transition: transform 0.18s cubic-bezier(0.22,1,0.36,1), background 0.18s;
+  }
+  .btn:hover { background: oklch(99% 0 0); transform: translateY(-1px); }
+  .brew { margin-top: 20px; font-size: 13.5px; color: var(--ink-soft); }
+  .brew code {
+    font-family: ui-monospace, "SF Mono", monospace; font-size: 12.5px;
+    background: oklch(100% 0 0 / 0.05);
+    border: 1px solid var(--rule);
+    padding: 4px 9px; border-radius: 6px; cursor: copy;
+  }
+  .brew .soon { font-size: 12px; color: var(--ink-faint); }
+
+  /* entrance */
+  .hero-copy > * { animation: rise 0.7s cubic-bezier(0.16,1,0.3,1) backwards; }
+  .hero-copy > h1 { animation-delay: 0.05s; }
+  .hero-copy > .dek { animation-delay: 0.14s; }
+  .hero-copy > .cta { animation-delay: 0.22s; }
+  .hero-copy > .brew { animation-delay: 0.3s; }
+  .po-wrap { animation: drop 0.8s 0.4s cubic-bezier(0.16,1,0.3,1) backwards; }
+  @keyframes rise { from { opacity: 0; transform: translateY(14px); } }
+  @keyframes drop { from { opacity: 0; transform: translateY(-12px); } }
+
+  /* ── the popover, hung from its status item ─── */
+  .po-wrap { position: absolute; top: 12px; right: 24px; z-index: 20; }
+  .po-arrow {
+    position: absolute; top: -5px; right: 60px;
+    width: 11px; height: 11px;
+    background: var(--panel);
+    border-top: 1px solid var(--rule); border-left: 1px solid var(--rule);
+    transform: rotate(45deg);
+    border-radius: 2px 0 0 0;
+  }
+  .popover {
+    width: 340px;
+    background: var(--panel); color: var(--panel-ink);
+    border: 1px solid var(--rule);
+    border-radius: 12px;
+    box-shadow: 0 30px 70px -18px oklch(0% 0 0 / 0.6);
+    font-size: 12px;
+    overflow: hidden;
+  }
+  .popover .p-head { display: flex; justify-content: space-between; align-items: baseline; padding: 9px 12px 8px; }
+  .popover .p-head b { font-size: 13px; }
+  .popover .p-head span { font-size: 10.5px; color: var(--panel-soft); }
+  .popover .p-rule { height: 1px; background: var(--rule); }
+  .popover .tabs {
+    display: flex; gap: 2px; margin: 8px 12px 2px;
+    background: oklch(100% 0 0 / 0.07); border-radius: 7px; padding: 2px;
+  }
+  .popover .tabs span { flex: 1; text-align: center; padding: 3px 0; border-radius: 5px; font-size: 11px; }
+  .popover .tabs .on { background: var(--accent-blue); font-weight: 550; }
+  .popover .sec {
+    font-size: 8.5px; font-weight: 600; letter-spacing: 0.1em; color: var(--panel-soft);
+    padding: 9px 12px 2px;
+  }
+  .popover .row {
+    display: grid; grid-template-columns: 40px 1fr 40px 1fr 38px;
+    gap: 6px; align-items: center; padding: 6px 12px;
+    font-size: 11.5px; font-variant-numeric: tabular-nums;
+  }
+  .popover .row .t { font-size: 10px; color: var(--panel-soft); }
+  .popover .row .live { color: var(--green); font-weight: 700; font-size: 10px; }
+  .popover .row .h { text-align: right; white-space: nowrap; overflow: hidden; }
+  .popover .row .s { text-align: center; }
+  .popover .row .s.on { font-weight: 650; }
+  .popover .row .g { font-size: 8.5px; color: var(--panel-soft); text-align: right; }
+  .popover .p-foot {
+    display: flex; justify-content: space-between; padding: 8px 12px;
+    font-size: 10px; color: var(--panel-soft);
+  }
+  .popover .p-foot span b { color: var(--panel-ink); font-weight: 500; margin-left: 10px; }
+
+  /* ── the notification ───────────────────────── */
+  .toast {
+    position: fixed; top: calc(var(--bar-h) + 10px); right: 12px; width: 320px;
+    display: flex; gap: 11px; align-items: center;
+    background: oklch(26% 0.01 270 / 0.97); color: var(--panel-ink);
+    border: 1px solid oklch(100% 0 0 / 0.12);
+    border-radius: 14px; padding: 11px 14px;
+    box-shadow: 0 18px 50px -10px oklch(0% 0 0 / 0.6);
+    transform: translateX(calc(100% + 40px));
+    transition: transform 0.7s cubic-bezier(0.16,1,0.3,1);
+    z-index: 40;
+  }
+  .toast.in { transform: translateX(0); }
+  .toast img { width: 34px; height: 34px; border-radius: 8px; }
+  .toast b { display: block; font-size: 13px; font-weight: 600; }
+  .toast small { font-size: 12px; color: var(--panel-soft); }
+
+  /* ── features ───────────────────────────────── */
+  .features { padding: clamp(40px, 7vh, 90px) 0 0; }
+  .features .label { font-size: 13px; font-weight: 500; color: var(--ink-faint); padding-bottom: 10px; }
+  .frow {
+    display: grid; grid-template-columns: 76px minmax(0, 260px) 1fr;
+    gap: clamp(16px, 3vw, 40px); align-items: baseline;
+    padding: 26px 0; border-top: 1px solid var(--rule);
+  }
+  .frow .badge {
+    font-size: 13px; font-weight: 650; color: var(--green);
+    font-variant-numeric: tabular-nums; letter-spacing: 0.02em;
+  }
+  .frow h2 { font-size: 19px; font-weight: 550; letter-spacing: -0.015em; }
+  .frow p { color: var(--ink-soft); font-weight: 350; font-size: 15px; max-width: 54ch; }
+  @media (max-width: 860px) { .frow { grid-template-columns: 60px 1fr; } .frow p { grid-column: 2; } }
+
+  /* ── install ────────────────────────────────── */
+  .install { padding: clamp(48px, 8vh, 100px) 0; max-width: 580px; }
+  .install h3 { font-size: 19px; font-weight: 550; letter-spacing: -0.015em; margin-bottom: 14px; }
+  .install ol { padding-left: 20px; color: var(--ink-soft); font-weight: 350; font-size: 15px; }
+  .install ol li { margin-bottom: 6px; }
+  .install ol li::marker { color: var(--green); font-weight: 650; }
+  .install ol li b { color: var(--ink); font-weight: 500; }
+  .install .fineprint { margin-top: 14px; font-size: 13px; color: var(--ink-faint); }
+
+  footer {
+    border-top: 1px solid var(--rule);
+    padding: 26px 0 60px;
+    font-size: 13px; color: var(--ink-faint);
+    display: flex; flex-wrap: wrap; gap: 8px 22px;
+  }
+  footer a { color: var(--ink-soft); text-decoration-color: var(--rule); }
+
+  /* ── narrow screens: popover joins the flow ──── */
+  @media (max-width: 760px) {
+    .hero { min-height: 0; display: block; padding: 48px 0 0; }
+    .hero-copy { max-width: none; }
+    .po-wrap { position: static; margin: 48px auto 0; width: 340px; max-width: 100%; animation: none; }
+    .po-arrow { display: none; }
+    .toast { display: none; }
+    .install { grid-template-columns: 1fr; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    * { animation: none !important; transition: none !important; }
+  }
+</style>
+</head>
+<body>
+
+<div class="menubar" aria-hidden="true">
+  <svg viewBox="0 0 14 17"><path d="M11.6 9c0-2 1.6-2.9 1.7-3-1-1.4-2.4-1.6-2.9-1.6-1.2-.1-2.4.7-3 .7-.6 0-1.6-.7-2.6-.7C3.4 4.4 2.1 5.2 1.4 6.5c-1.5 2.6-.4 6.4 1.1 8.5.7 1 1.5 2.2 2.6 2.1 1-.1 1.4-.7 2.7-.7 1.3 0 1.6.7 2.7.7 1.1 0 1.8-1 2.5-2 .8-1.2 1.1-2.3 1.1-2.4-.1 0-2.2-.9-2.5-3.7zM9.6 2.8c.6-.7 1-1.7.9-2.8-.9 0-1.9.6-2.5 1.3-.6.6-1 1.6-.9 2.6 1 .1 1.9-.5 2.5-1.1z"/></svg>
+  <span class="appname">Finder</span>
+  <span class="menus"><span>File</span><span>Edit</span><span>View</span><span>Go</span><span>Window</span><span>Help</span></span>
+  <span class="spacer"></span>
+  <span class="status">
+    <span id="mb-score">🇲🇽 0–0 🇿🇦 63′</span>
+    <span class="clock">Thu 11 Jun <span id="mb-clock">20:43</span></span>
+  </span>
+</div>
+
+<main>
+  <section class="hero">
+    <div class="shell" style="width: 100%;">
+      <div class="hero-copy">
+        <h1>The World Cup,<br>in your menu bar.</h1>
+        <p class="dek">Live scores beside your clock while a match is on. A tap on the shoulder, <strong>scorer and minute</strong>, when someone finds the net. No account, no API key, no Electron. <strong>0.3&nbsp;MB.</strong></p>
+        <div class="cta">
+          <a class="btn" href="https://github.com/lawandothman/world-cup-app/releases/latest/download/WorldCupApp.zip">Download for macOS</a>
+        </div>
+        <p class="brew">or <code id="brew" title="click to copy">brew install --cask lawandothman/tap/world-cup-app</code> <span class="soon" id="brew-note">- tap landing soon</span></p>
+      </div>
+    </div>
+
+    <div class="po-wrap" id="po-wrap">
+      <div class="po-arrow" id="po-arrow"></div>
+      <div class="popover" aria-label="The app's popover">
+        <div class="p-head"><b>World Cup 2026</b><span>Thursday, Jun 11</span></div>
+        <div class="p-rule"></div>
+        <div class="tabs"><span class="on">Matches</span><span>Groups</span></div>
+        <div class="sec">TODAY</div>
+        <div class="row">
+          <span class="live" id="po-min">63′</span>
+          <span class="h">Mexico 🇲🇽</span><span class="s on" id="po-score">0–0</span><span>🇿🇦 South Africa</span>
+          <span class="g">Group A</span>
+        </div>
+        <div class="sec">TOMORROW</div>
+        <div class="row"><span class="t">03:00</span><span class="h">South Korea 🇰🇷</span><span class="s">v</span><span>🇨🇿 Czechia</span><span class="g">Group A</span></div>
+        <div class="row"><span class="t">20:00</span><span class="h">Canada 🇨🇦</span><span class="s">v</span><span>🇧🇦 Bosnia-Herz</span><span class="g">Group B</span></div>
+        <div class="sec">SATURDAY, JUN 13</div>
+        <div class="row"><span class="t">02:00</span><span class="h">USA 🇺🇸</span><span class="s">v</span><span>🇵🇾 Paraguay</span><span class="g">Group D</span></div>
+        <div class="row"><span class="t">20:00</span><span class="h">Qatar 🇶🇦</span><span class="s">v</span><span>🇨🇭 Switzerland</span><span class="g">Group B</span></div>
+        <div class="row"><span class="t">23:00</span><span class="h">Brazil 🇧🇷</span><span class="s">v</span><span>🇲🇦 Morocco</span><span class="g">Group C</span></div>
+        <div class="p-rule"></div>
+        <div class="p-foot"><span>Updated <span id="po-upd">20:43</span></span><span><b>Refresh</b><b>Quit</b></span></div>
+      </div>
+    </div>
+  </section>
+
+  <div class="shell">
+    <section class="features">
+      <p class="label">What it does</p>
+      <div class="frow">
+        <span class="badge" id="f-min">67′</span>
+        <h2>Lives in the menu bar</h2>
+        <p>The score sits beside your clock, minute ticking, only while matches are on. The rest of the time it's just a quiet ⚽.</p>
+      </div>
+      <div class="frow">
+        <span class="badge">⚽️</span>
+        <h2>Goal notifications</h2>
+        <p>Scorer, minute and score, about thirty seconds behind the broadcast. Own goals (og), penalties (pen), and disallowed goals get a notification too.</p>
+      </div>
+      <div class="frow">
+        <span class="badge">A–L</span>
+        <h2>Twelve group tables</h2>
+        <p>P&nbsp;W&nbsp;D&nbsp;L&nbsp;GD&nbsp;Pts, dense as the back page of a newspaper. Knockout bracket when we get there.</p>
+      </div>
+      <div class="frow">
+        <span class="badge">104</span>
+        <h2>Every fixture, your timezone</h2>
+        <p>The week ahead, sectioned by day. Extra time, penalty shootouts and simultaneous kickoffs all handled.</p>
+      </div>
+    </section>
+
+    <section class="install">
+      <div>
+        <h3>Honest small print</h3>
+        <ol>
+          <li>Free, and stays free.</li>
+          <li>No analytics, no accounts, nothing phones home except the scores.</li>
+          <li>Native Swift. Uses about as much memory as this web page.</li>
+        </ol>
+        <p class="fineprint">Scores via ESPN's public scoreboard feed, polled every 30 seconds during matches.</p>
+      </div>
+    </section>
+
+    <footer>
+      <span>World Cup App</span>
+      <span>Built in SwiftUI</span>
+      <a href="https://github.com/lawandothman/world-cup-app">GitHub</a>
+      <span style="flex:1"></span>
+      <span>Group stage Jun 11 → Final Jul 19, 2026</span>
+    </footer>
+  </div>
+</main>
+
+<div class="toast" id="toast" role="status">
+  <img src="assets/icon.png" alt="">
+  <div><b id="toast-title">⚽️ Giménez 67′</b><small id="toast-body">🇲🇽 Mexico 1–0 🇿🇦 South Africa</small></div>
+</div>
+
+<script>
+  const reduced = matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const mb = document.getElementById("mb-score");
+  const poMin = document.getElementById("po-min");
+  const poScore = document.getElementById("po-score");
+  const fMin = document.getElementById("f-min");
+  const toast = document.getElementById("toast");
+
+  // hang the popover from its status item, arrow pointing at its center
+  function anchor() {
+    const wrap = document.getElementById("po-wrap");
+    const arrow = document.getElementById("po-arrow");
+    if (innerWidth <= 760) { wrap.style.right = ""; return; }
+    const rect = mb.getBoundingClientRect();
+    const itemCenter = innerWidth - (rect.left + rect.width / 2); // from right edge
+    const right = Math.max(12, itemCenter - 170);                  // center 340px panel on it
+    wrap.style.right = right + "px";
+    arrow.style.right = (itemCenter - right - 6) + "px";
+  }
+  addEventListener("resize", anchor);
+  addEventListener("load", anchor);
+  anchor();
+
+  function paintClock() {
+    const now = new Date();
+    const hm = now.toTimeString().slice(0, 5);
+    document.getElementById("mb-clock").textContent = hm;
+    document.getElementById("po-upd").textContent = hm;
+  }
+  paintClock(); setInterval(paintClock, 30000);
+
+  let minute = 66, scored = false;
+  function paint() {
+    const m = minute + "′";
+    const score = scored ? "1–0" : "0–0";
+    mb.textContent = `🇲🇽 ${score} 🇿🇦 ${m}`;
+    poMin.textContent = m; poScore.textContent = score; fMin.textContent = m;
+    anchor();
+  }
+
+  if (reduced) {
+    minute = 67; scored = true; paint();
+  } else {
+    paint();
+    // the goal, once, shortly after load
+    setTimeout(() => {
+      minute = 67; scored = true; paint();
+      toast.classList.add("in");
+      mb.classList.add("scored");
+      setTimeout(() => mb.classList.remove("scored"), 1000);
+      setTimeout(() => toast.classList.remove("in"), 3500);
+    }, 3200);
+    // after that, the clock runs at match speed
+    setInterval(() => {
+      if (minute < 90) { minute += 1; paint(); }
+    }, 60000);
+  }
+
+  document.getElementById("brew").addEventListener("click", (e) => {
+    navigator.clipboard?.writeText(e.target.textContent);
+    const note = document.getElementById("brew-note");
+    const prior = note.textContent;
+    note.textContent = "- copied";
+    setTimeout(() => { note.textContent = prior; }, 1400);
+  });
+</script>
+</body>
+</html>
