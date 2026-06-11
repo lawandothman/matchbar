@@ -21,13 +21,17 @@ app: build
 
 release: app
 	codesign --force --options runtime --sign "$(IDENTITY)" $(APP).app
-	ditto -c -k --keepParent $(APP).app $(APP).zip
-	xcrun notarytool submit $(APP).zip --keychain-profile $(PROFILE) --wait
-	xcrun stapler staple $(APP).app
-	ditto -c -k --keepParent $(APP).app $(APP).zip
-	@echo "$(APP).zip is notarized and ready to distribute"
+	rm -rf dist $(APP).dmg
+	mkdir dist
+	cp -R $(APP).app dist/
+	ln -s /Applications dist/Applications
+	hdiutil create -volname "World Cup App" -srcfolder dist -ov -format UDZO $(APP).dmg
+	rm -rf dist
+	xcrun notarytool submit $(APP).dmg --keychain-profile $(PROFILE) --wait
+	xcrun stapler staple $(APP).dmg
+	@echo "$(APP).dmg is notarized and ready to distribute"
 
 clean:
-	rm -rf .build $(APP).app $(APP).zip
+	rm -rf .build dist $(APP).app $(APP).dmg
 
 .PHONY: run build icon app release clean

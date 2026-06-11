@@ -103,15 +103,6 @@
     transition: transform 0.18s cubic-bezier(0.22,1,0.36,1), background 0.18s;
   }
   .btn:hover { background: oklch(99% 0 0); transform: translateY(-1px); }
-  .brew { font-size: 13px; color: var(--ink-soft); }
-  .brew code {
-    font-family: ui-monospace, "SF Mono", monospace; font-size: 12px;
-    background: oklch(100% 0 0 / 0.05);
-    border: 1px solid var(--rule);
-    padding: 4px 9px; border-radius: 6px; cursor: copy;
-  }
-  .brew .soon { font-size: 11.5px; color: var(--ink-faint); }
-
   /* features, folded under the copy */
   .features { margin-top: clamp(26px, 5vh, 52px); }
   .frow {
@@ -243,8 +234,7 @@
       <h1>The World Cup,<br>in your menu bar.</h1>
       <p class="dek">Live scores beside your clock while a match is on. A tap on the shoulder, <strong>scorer and minute</strong>, when someone finds the net. No account, no API key, no Electron. <strong>0.3&nbsp;MB.</strong></p>
       <div class="cta">
-        <a class="btn" href="https://github.com/lawandothman/world-cup-app/releases/latest/download/WorldCupApp.zip">Download for macOS</a>
-        <p class="brew">or <code id="brew" title="click to copy">brew install --cask lawandothman/tap/world-cup-app</code> <span class="soon" id="brew-note">- tap landing soon</span></p>
+        <a class="btn" href="https://github.com/lawandothman/world-cup-app/releases/latest/download/WorldCupApp.dmg">Download for macOS</a>
       </div>
 
       <div class="features">
@@ -349,13 +339,6 @@
     }, 60000);
   }
 
-  document.getElementById("brew").addEventListener("click", (e) => {
-    navigator.clipboard?.writeText(e.target.textContent);
-    const note = document.getElementById("brew-note");
-    const prior = note.textContent;
-    note.textContent = "- copied";
-    setTimeout(() => { note.textContent = prior; }, 1400);
-  });
 </script>
 </body>
 </html>

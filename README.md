@@ -27,7 +27,7 @@ One-time setup:
      --key AuthKey_XXXXXXXXXX.p8 --key-id XXXXXXXXXX --issuer ISSUER-UUID
    ```
 
-Then `make release` signs, notarizes, staples, and produces a distributable `WorldCupApp.zip`.
+Then `make release` signs, notarizes, staples, and produces a distributable `WorldCupApp.dmg`.
 
 ### CI releases
 
