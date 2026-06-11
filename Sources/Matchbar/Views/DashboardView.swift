@@ -39,6 +39,7 @@ struct DashboardView: View {
         .pickerStyle(.segmented)
         .labelsHidden()
         .controlSize(.small)
+        .frame(maxWidth: .infinity)
         .padding(.horizontal, 12)
         .padding(.top, 8)
     }
