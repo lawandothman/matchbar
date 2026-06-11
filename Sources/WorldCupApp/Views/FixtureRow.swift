@@ -50,17 +50,19 @@ struct FixtureRow: View {
     private var statusColumn: some View {
         switch fixture.status {
         case .inPlay:
-            Text("LIVE")
+            Text(fixture.minute ?? "LIVE")
                 .font(.system(size: 11, weight: .bold))
                 .foregroundStyle(.green)
+                .monospacedDigit()
         case .paused:
             Text("HT")
                 .font(.system(size: 11, weight: .bold))
                 .foregroundStyle(.green)
         case .extraTime:
-            Text("ET")
+            Text(fixture.minute ?? "ET")
                 .font(.system(size: 11, weight: .bold))
                 .foregroundStyle(.green)
+                .monospacedDigit()
         case .penaltyShootout:
             Text("PENS")
                 .font(.system(size: 11, weight: .bold))
