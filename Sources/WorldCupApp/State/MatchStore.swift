@@ -90,11 +90,18 @@ final class MatchStore {
             let oldAway = prior.score.fullTime.away ?? 0
             let newAway = fixture.score.fullTime.away ?? 0
 
-            if newHome > oldHome {
-                notifier.notify(title: "⚽️ Goal — \(fixture.homeTeam.displayName)", body: fixture.summaryLine)
-            }
-            if newAway > oldAway {
-                notifier.notify(title: "⚽️ Goal — \(fixture.awayTeam.displayName)", body: fixture.summaryLine)
+            let newGoals = fixture.goals.filter { !prior.goals.contains($0) }
+            if !newGoals.isEmpty {
+                for goal in newGoals {
+                    notifier.notify(title: "⚽️ \(goal.label)", body: fixture.summaryLine)
+                }
+            } else {
+                if newHome > oldHome {
+                    notifier.notify(title: "⚽️ Goal — \(fixture.homeTeam.displayName)", body: fixture.summaryLine)
+                }
+                if newAway > oldAway {
+                    notifier.notify(title: "⚽️ Goal — \(fixture.awayTeam.displayName)", body: fixture.summaryLine)
+                }
             }
             if newHome < oldHome || newAway < oldAway {
                 notifier.notify(title: "Goal disallowed", body: fixture.summaryLine)
