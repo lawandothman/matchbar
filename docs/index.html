@@ -352,6 +352,7 @@
 
   if (reduced) {
     minute = 67; scored = true; paint();
+    toast.classList.add("in");
   } else {
     paint();
     // the goal, once, shortly after load
@@ -360,7 +361,6 @@
       toast.classList.add("in");
       mb.classList.add("scored");
       setTimeout(() => mb.classList.remove("scored"), 1000);
-      setTimeout(() => toast.classList.remove("in"), 3500);
     }, 3200);
     // after that, the clock runs at match speed
     setInterval(() => {
