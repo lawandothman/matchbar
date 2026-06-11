@@ -15,11 +15,15 @@ final class MatchStore {
 
     var liveFixtures: [Fixture] { fixtures.filter(\.isLive) }
 
-    var todayFixtures: [Fixture] {
+    var sections: [FixtureDaySection] {
         let calendar = Calendar.current
-        return fixtures
-            .filter { calendar.isDateInToday($0.utcDate) }
-            .sorted { $0.utcDate < $1.utcDate }
+        let startOfToday = calendar.startOfDay(for: Date())
+        let visible = fixtures.filter { $0.utcDate >= startOfToday || $0.isLive }
+        return Dictionary(grouping: visible) { calendar.startOfDay(for: $0.utcDate) }
+            .map { day, fixtures in
+                FixtureDaySection(day: day, fixtures: fixtures.sorted { $0.utcDate < $1.utcDate })
+            }
+            .sorted { $0.day < $1.day }
     }
 
     init() {
@@ -53,7 +57,7 @@ final class MatchStore {
             let previous = Dictionary(uniqueKeysWithValues: fixtures.map { ($0.id, $0) })
             fixtures = try await client.fixtures(
                 from: now.addingTimeInterval(-86400),
-                to: now.addingTimeInterval(86400)
+                to: now.addingTimeInterval(7 * 86400)
             )
             if !previous.isEmpty {
                 announce(changesFrom: previous)

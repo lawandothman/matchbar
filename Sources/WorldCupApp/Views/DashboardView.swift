@@ -17,7 +17,7 @@ struct DashboardView: View {
                         tabPicker
                         switch tab {
                         case .matches:
-                            if store.todayFixtures.isEmpty {
+                            if store.sections.isEmpty {
                                 emptyState
                             } else {
                                 fixtureList
@@ -62,18 +62,31 @@ struct DashboardView: View {
     }
 
     private var fixtureList: some View {
-        VStack(spacing: 0) {
-            ForEach(store.todayFixtures) { fixture in
-                FixtureRow(fixture: fixture)
-                    .padding(.horizontal, 12)
-                    .padding(.vertical, 8)
+        ScrollView {
+            VStack(alignment: .leading, spacing: 0) {
+                ForEach(store.sections) { section in
+                    Text(section.title)
+                        .font(.system(size: 10, weight: .semibold))
+                        .textCase(.uppercase)
+                        .foregroundStyle(.secondary)
+                        .padding(.horizontal, 12)
+                        .padding(.top, 10)
+                        .padding(.bottom, 2)
+
+                    ForEach(section.fixtures) { fixture in
+                        FixtureRow(fixture: fixture)
+                            .padding(.horizontal, 12)
+                            .padding(.vertical, 8)
+                    }
+                }
             }
+            .padding(.bottom, 8)
         }
-        .padding(.vertical, 4)
+        .frame(maxHeight: 460)
     }
 
     private var emptyState: some View {
-        Text(store.lastError ?? "No matches today")
+        Text(store.lastError ?? "No upcoming matches")
             .font(.caption)
             .foregroundStyle(.secondary)
             .frame(maxWidth: .infinity)
@@ -82,7 +95,7 @@ struct DashboardView: View {
 
     private var footer: some View {
         HStack {
-            if let error = store.lastError, !store.todayFixtures.isEmpty {
+            if let error = store.lastError, !store.fixtures.isEmpty {
                 Text(error)
                     .font(.caption2)
                     .foregroundStyle(.red)
