@@ -163,9 +163,12 @@
   .popover .row .s.on { font-weight: 650; }
   .popover .row .g { font-size: 8.5px; color: var(--panel-soft); text-align: right; }
   .popover .scorers {
+    display: grid; grid-template-columns: 40px 1fr 40px 1fr 38px; gap: 6px;
     margin-top: -4px; padding: 0 12px 4px;
-    font-size: 9.5px; color: var(--panel-soft); text-align: center;
+    font-size: 9.5px; color: var(--panel-soft);
+    white-space: pre-line; line-height: 1.5;
   }
+  .popover .scorers span { grid-column: 2; text-align: right; }
   .popover .p-foot {
     display: flex; justify-content: space-between; padding: 8px 12px;
     font-size: 10px; color: var(--panel-soft);
@@ -280,7 +283,7 @@
           <span class="h">Mexico 🇲🇽</span><span class="s on" id="po-score">1–0</span><span>🇿🇦 South Africa</span>
           <span class="g">Group A</span>
         </div>
-        <div class="scorers" id="po-scorers">J. Quiñones 9′</div>
+        <div class="scorers"><span id="po-scorers">J. Quiñones 9′</span></div>
         <div class="sec">TOMORROW</div>
         <div class="row"><span class="t">03:00</span><span class="h">South Korea 🇰🇷</span><span class="s">v</span><span>🇨🇿 Czechia</span><span class="g">Group A</span></div>
         <div class="row"><span class="t">20:00</span><span class="h">Canada 🇨🇦</span><span class="s">v</span><span>🇧🇦 Bosnia-Herz</span><span class="g">Group B</span></div>
@@ -324,7 +327,7 @@
     mb.textContent = `🇲🇽 ${score} 🇿🇦 ${m}`;
     poMin.textContent = m; poScore.textContent = score; fMin.textContent = m;
     document.getElementById("po-scorers").textContent =
-      scored ? "J. Quiñones 9′, R. Jiménez 67′" : "J. Quiñones 9′";
+      scored ? "J. Quiñones 9′\nR. Jiménez 67′" : "J. Quiñones 9′";
   }
 
   if (reduced) {
