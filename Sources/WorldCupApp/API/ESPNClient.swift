@@ -67,6 +67,7 @@ struct ESPNClient: ScoreProvider {
             .map { detail in
                 GoalEvent(
                     scorer: detail.athletesInvolved?.first?.displayName,
+                    scorerShort: detail.athletesInvolved?.first?.shortName,
                     minute: detail.clock?.displayValue,
                     isHome: detail.team?.id != nil && detail.team?.id == home.team.id,
                     isOwnGoal: detail.ownGoal == true,

@@ -4,29 +4,54 @@ struct FixtureRow: View {
     let fixture: Fixture
 
     var body: some View {
-        HStack(spacing: 8) {
-            statusColumn
-                .frame(width: 48, alignment: .leading)
+        VStack(spacing: 3) {
+            HStack(spacing: 8) {
+                statusColumn
+                    .frame(width: 48, alignment: .leading)
 
-            Text(homeLabel)
-                .frame(maxWidth: .infinity, alignment: .trailing)
-                .lineLimit(1)
+                Text(homeLabel)
+                    .frame(maxWidth: .infinity, alignment: .trailing)
+                    .lineLimit(1)
 
-            Text(scoreColumn)
-                .monospacedDigit()
-                .fontWeight(fixture.isLive ? .bold : .regular)
-                .frame(width: 56)
+                Text(scoreColumn)
+                    .monospacedDigit()
+                    .fontWeight(fixture.isLive ? .bold : .regular)
+                    .frame(width: 56)
 
-            Text(awayLabel)
-                .frame(maxWidth: .infinity, alignment: .leading)
-                .lineLimit(1)
+                Text(awayLabel)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .lineLimit(1)
 
-            Text(fixture.roundLabel ?? "")
-                .font(.system(size: 11))
-                .foregroundStyle(.tertiary)
-                .frame(width: 50, alignment: .trailing)
+                Text(fixture.roundLabel ?? "")
+                    .font(.system(size: 11))
+                    .foregroundStyle(.tertiary)
+                    .frame(width: 50, alignment: .trailing)
+            }
+
+            if !fixture.goals.isEmpty {
+                HStack(alignment: .top, spacing: 8) {
+                    Color.clear.frame(width: 48, height: 0)
+                    Text(scorers(home: true))
+                        .multilineTextAlignment(.trailing)
+                        .frame(maxWidth: .infinity, alignment: .trailing)
+                    Color.clear.frame(width: 56, height: 0)
+                    Text(scorers(home: false))
+                        .multilineTextAlignment(.leading)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                    Color.clear.frame(width: 50, height: 0)
+                }
+                .font(.system(size: 10))
+                .foregroundStyle(.secondary)
+            }
         }
         .font(.system(size: 13))
+    }
+
+    private func scorers(home: Bool) -> String {
+        fixture.goals
+            .filter { $0.isHome == home }
+            .map(\.compactLabel)
+            .joined(separator: ", ")
     }
 
     private var homeLabel: String {

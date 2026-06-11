@@ -59,4 +59,5 @@ struct ESPNTeamRef: Decodable {
 
 struct ESPNAthlete: Decodable {
     let displayName: String?
+    let shortName: String?
 }
