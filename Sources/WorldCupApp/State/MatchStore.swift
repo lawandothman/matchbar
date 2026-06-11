@@ -5,6 +5,7 @@ import Observation
 @Observable
 final class MatchStore {
     private(set) var fixtures: [Fixture] = []
+    private(set) var standings: [GroupStanding] = []
     private(set) var lastError: String?
     private(set) var lastUpdated: Date?
     private(set) var hasToken = false
@@ -50,6 +51,7 @@ final class MatchStore {
                 from: now.addingTimeInterval(-86400),
                 to: now.addingTimeInterval(86400)
             )
+            standings = try await client.standings()
             lastUpdated = Date()
             lastError = nil
         } catch {

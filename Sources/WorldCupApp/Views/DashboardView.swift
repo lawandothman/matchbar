@@ -2,6 +2,7 @@ import SwiftUI
 
 struct DashboardView: View {
     let store: MatchStore
+    @State private var tab: DashboardTab = .matches
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
@@ -10,16 +11,36 @@ struct DashboardView: View {
 
             if !store.hasToken {
                 TokenPromptView(store: store)
-            } else if store.todayFixtures.isEmpty {
-                emptyState
             } else {
-                fixtureList
+                tabPicker
+                switch tab {
+                case .matches:
+                    if store.todayFixtures.isEmpty {
+                        emptyState
+                    } else {
+                        fixtureList
+                    }
+                case .groups:
+                    StandingsView(standings: store.standings)
+                }
             }
 
             Divider()
             footer
         }
         .frame(width: 320)
+    }
+
+    private var tabPicker: some View {
+        Picker("", selection: $tab) {
+            Text("Matches").tag(DashboardTab.matches)
+            Text("Groups").tag(DashboardTab.groups)
+        }
+        .pickerStyle(.segmented)
+        .labelsHidden()
+        .controlSize(.small)
+        .padding(.horizontal, 12)
+        .padding(.top, 8)
     }
 
     private var header: some View {
