@@ -79,7 +79,7 @@ struct ESPNClient: ScoreProvider {
             id: id,
             utcDate: date,
             status: status,
-            stage: .unknown,
+            stage: stage(for: date),
             group: nil,
             homeTeam: team(from: home.team),
             awayTeam: team(from: away.team),
@@ -94,6 +94,30 @@ struct ESPNClient: ScoreProvider {
             minute: event.status.type.state == "in" ? event.status.displayClock : nil,
             goals: goals
         )
+    }
+
+    private static let utcCalendar: Calendar = {
+        var calendar = Calendar(identifier: .gregorian)
+        calendar.timeZone = TimeZone(identifier: "UTC")!
+        return calendar
+    }()
+
+    // the 2026 knockout calendar is fixed; ESPN's scoreboard carries no round
+    // info, so infer it from the date (half-day padding absorbs UTC spillover
+    // from late kickoffs in western venues)
+    private func stage(for date: Date) -> FixtureStage {
+        func boundary(_ month: Int, _ day: Int, _ hour: Int = 0) -> Date {
+            Self.utcCalendar.date(from: DateComponents(year: 2026, month: month, day: day, hour: hour))!
+        }
+        switch date {
+        case ..<boundary(6, 28): return .groupStage
+        case ..<boundary(7, 4, 12): return .last32
+        case ..<boundary(7, 8, 12): return .last16
+        case ..<boundary(7, 12, 12): return .quarterFinals
+        case ..<boundary(7, 17): return .semiFinals
+        case ..<boundary(7, 19, 6): return .thirdPlace
+        default: return .finalStage
+        }
     }
 
     private func team(from info: ESPNTeamInfo) -> FixtureTeam {
