@@ -4,7 +4,7 @@ struct Fixture: Decodable, Identifiable, Equatable {
     let id: Int
     let utcDate: Date
     let status: FixtureStatus
-    let stage: String
+    let stage: FixtureStage
     let group: String?
     let homeTeam: FixtureTeam
     let awayTeam: FixtureTeam
@@ -12,7 +12,10 @@ struct Fixture: Decodable, Identifiable, Equatable {
 
     var isLive: Bool { status.isLive }
 
-    var groupLabel: String? {
-        group?.replacingOccurrences(of: "GROUP_", with: "Group ")
+    var roundLabel: String? {
+        if let group {
+            return group.replacingOccurrences(of: "GROUP_", with: "Group ")
+        }
+        return stage.shortLabel
     }
 }

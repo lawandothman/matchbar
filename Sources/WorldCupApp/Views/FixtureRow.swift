@@ -20,6 +20,11 @@ struct FixtureRow: View {
             Text(fixture.awayTeam.displayName)
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .lineLimit(1)
+
+            Text(fixture.roundLabel ?? "")
+                .font(.system(size: 9))
+                .foregroundStyle(.tertiary)
+                .frame(width: 44, alignment: .trailing)
         }
         .font(.system(size: 12))
     }
