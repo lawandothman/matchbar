@@ -28,7 +28,7 @@ struct DashboardView: View {
             Divider()
             footer
         }
-        .frame(width: 320)
+        .frame(width: 380)
     }
 
     private var tabPicker: some View {
@@ -46,7 +46,7 @@ struct DashboardView: View {
     private var header: some View {
         HStack {
             Text("World Cup 2026")
-                .font(.system(size: 13, weight: .bold))
+                .font(.system(size: 14, weight: .bold))
             Spacer()
             Text(Date(), format: .dateTime.weekday(.wide).day().month())
                 .font(.caption)
@@ -61,7 +61,7 @@ struct DashboardView: View {
             ForEach(store.todayFixtures) { fixture in
                 FixtureRow(fixture: fixture)
                     .padding(.horizontal, 12)
-                    .padding(.vertical, 5)
+                    .padding(.vertical, 6)
             }
         }
         .padding(.vertical, 4)

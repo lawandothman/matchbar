@@ -6,7 +6,7 @@ struct FixtureRow: View {
     var body: some View {
         HStack(spacing: 8) {
             statusColumn
-                .frame(width: 44, alignment: .leading)
+                .frame(width: 48, alignment: .leading)
 
             Text(homeLabel)
                 .frame(maxWidth: .infinity, alignment: .trailing)
@@ -15,18 +15,18 @@ struct FixtureRow: View {
             Text(scoreColumn)
                 .monospacedDigit()
                 .fontWeight(fixture.isLive ? .bold : .regular)
-                .frame(width: 44)
+                .frame(width: 56)
 
             Text(awayLabel)
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .lineLimit(1)
 
             Text(fixture.roundLabel ?? "")
-                .font(.system(size: 9))
+                .font(.system(size: 11))
                 .foregroundStyle(.tertiary)
-                .frame(width: 44, alignment: .trailing)
+                .frame(width: 50, alignment: .trailing)
         }
-        .font(.system(size: 12))
+        .font(.system(size: 13))
     }
 
     private var homeLabel: String {
@@ -51,32 +51,32 @@ struct FixtureRow: View {
         switch fixture.status {
         case .inPlay:
             Text("LIVE")
-                .font(.system(size: 10, weight: .bold))
+                .font(.system(size: 11, weight: .bold))
                 .foregroundStyle(.green)
         case .paused:
             Text("HT")
-                .font(.system(size: 10, weight: .bold))
+                .font(.system(size: 11, weight: .bold))
                 .foregroundStyle(.green)
         case .extraTime:
             Text("ET")
-                .font(.system(size: 10, weight: .bold))
+                .font(.system(size: 11, weight: .bold))
                 .foregroundStyle(.green)
         case .penaltyShootout:
             Text("PENS")
-                .font(.system(size: 10, weight: .bold))
+                .font(.system(size: 11, weight: .bold))
                 .foregroundStyle(.green)
         case .finished:
             Text("FT")
-                .font(.system(size: 10, weight: .semibold))
+                .font(.system(size: 11, weight: .semibold))
                 .foregroundStyle(.secondary)
         case .scheduled, .timed:
             Text(fixture.utcDate, format: .dateTime.hour().minute())
-                .font(.system(size: 10))
+                .font(.system(size: 11))
                 .foregroundStyle(.secondary)
                 .monospacedDigit()
         default:
             Text(fixture.status.rawValue.prefix(4))
-                .font(.system(size: 10))
+                .font(.system(size: 11))
                 .foregroundStyle(.secondary)
         }
     }
