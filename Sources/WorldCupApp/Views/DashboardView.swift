@@ -9,21 +9,26 @@ struct DashboardView: View {
             header
             Divider()
 
-            if !store.hasToken {
-                TokenPromptView(store: store)
-            } else {
-                tabPicker
-                switch tab {
-                case .matches:
-                    if store.todayFixtures.isEmpty {
-                        emptyState
-                    } else {
-                        fixtureList
+            Group {
+                if !store.hasToken {
+                    TokenPromptView(store: store)
+                } else {
+                    VStack(alignment: .leading, spacing: 0) {
+                        tabPicker
+                        switch tab {
+                        case .matches:
+                            if store.todayFixtures.isEmpty {
+                                emptyState
+                            } else {
+                                fixtureList
+                            }
+                        case .groups:
+                            StandingsView(standings: store.standings)
+                        }
                     }
-                case .groups:
-                    StandingsView(standings: store.standings)
                 }
             }
+            .frame(maxWidth: .infinity, minHeight: 380, alignment: .top)
 
             Divider()
             footer
@@ -61,7 +66,7 @@ struct DashboardView: View {
             ForEach(store.todayFixtures) { fixture in
                 FixtureRow(fixture: fixture)
                     .padding(.horizontal, 12)
-                    .padding(.vertical, 6)
+                    .padding(.vertical, 8)
             }
         }
         .padding(.vertical, 4)

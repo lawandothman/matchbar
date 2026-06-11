@@ -19,7 +19,7 @@ struct StandingsView: View {
                 }
                 .padding(12)
             }
-            .frame(maxHeight: 420)
+            .frame(maxHeight: 460)
         }
     }
 }
