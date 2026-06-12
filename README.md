@@ -4,16 +4,18 @@
 
 <h1 align="center">Matchbar</h1>
 
-<p align="center">The World Cup 2026, live in your Mac menu bar.</p>
-
 <p align="center">
-  <img src=".github/assets/screenshot.png" width="420" alt="Matchbar popover">
+  <img src=".github/assets/screenshot.png" width="800" alt="Matchbar popover">
 </p>
+
+<br />
+
+<p align="center">The World Cup in your menu bar</p>
 
 ## Features
 
-- ⚽ Live score beside your clock while a match is on, with the match minute ticking
-- 🔔 Goal notifications the moment someone scores, with scorer and minute
+- ⚽ Live score in your menu bar while a match is on
+- 🔔 Goal notifications the moment someone scores, with scorer name and minute
 - 🟢 Kickoff and full-time notifications
 - 📅 Every fixture, sectioned by day, in your timezone, with results history
 - 🔍 Filter matches by team or group
