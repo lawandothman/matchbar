@@ -2,7 +2,7 @@ import Foundation
 
 struct GroupStanding: Identifiable, Equatable {
     let group: String?
-    let table: [StandingRow]
+    var table: [StandingRow]
 
     var id: String { group ?? "" }
 

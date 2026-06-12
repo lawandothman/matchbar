@@ -32,6 +32,21 @@ final class MatchStore {
         return sections.first(where: { $0.day >= startOfToday })?.id ?? sections.last?.id
     }
 
+    var allTeams: [FixtureTeam] {
+        var seen = Set<String>()
+        return standings
+            .flatMap { $0.table.map(\.team) }
+            .filter { team in
+                guard let tla = team.tla, seen.insert(tla).inserted else { return false }
+                return true
+            }
+            .sorted { $0.displayName < $1.displayName }
+    }
+
+    var groupLabels: [String] {
+        standings.map(\.label).sorted()
+    }
+
     init() {
         notifier.requestAuthorization()
         pollTask = Task { [weak self] in
@@ -64,6 +79,8 @@ final class MatchStore {
             }
             standings = try await provider.standings()
             stampGroups()
+            stampForm()
+            stampQualification()
             lastUpdated = Date()
             lastError = nil
             welcomeIfNeeded()
@@ -111,6 +128,76 @@ final class MatchStore {
             stamped.group = homeGroup
             return stamped
         }
+    }
+
+    // last-five form per team, derived from finished fixtures; shootout
+    // wins count as wins
+    private func stampForm() {
+        var resultsByTeam: [String: [FormResult]] = [:]
+        let finished = fixtures
+            .filter { $0.status == .finished }
+            .sorted { $0.utcDate < $1.utcDate }
+
+        for fixture in finished {
+            guard let home = fixture.score.fullTime.home,
+                  let away = fixture.score.fullTime.away,
+                  let homeTLA = fixture.homeTeam.tla,
+                  let awayTLA = fixture.awayTeam.tla
+            else { continue }
+
+            var homeResult: FormResult = home > away ? .win : (home < away ? .loss : .draw)
+            if home == away,
+               let homePens = fixture.score.penalties?.home,
+               let awayPens = fixture.score.penalties?.away {
+                homeResult = homePens > awayPens ? .win : .loss
+            }
+            let awayResult: FormResult = switch homeResult {
+            case .win: .loss
+            case .loss: .win
+            case .draw: .draw
+            }
+            resultsByTeam[homeTLA, default: []].append(homeResult)
+            resultsByTeam[awayTLA, default: []].append(awayResult)
+        }
+
+        standings = standings.map { group in
+            var stamped = group
+            stamped.table = group.table.map { row in
+                var stampedRow = row
+                stampedRow.form = Array((resultsByTeam[row.team.tla ?? ""] ?? []).suffix(5))
+                return stampedRow
+            }
+            return stamped
+        }
+    }
+
+    // 8 of the 12 third-placed teams advance; mark thirds currently inside
+    // that cross-group top eight
+    private func stampQualification() {
+        let thirds = standings.compactMap { $0.table.count >= 3 ? $0.table[2] : nil }
+        let topEight = thirds
+            .sorted { a, b in
+                if a.points != b.points { return a.points > b.points }
+                if a.goalDifference != b.goalDifference { return a.goalDifference > b.goalDifference }
+                return a.goalsFor > b.goalsFor
+            }
+            .prefix(8)
+            .compactMap { $0.team.tla }
+        let qualifying = Set(topEight)
+
+        standings = standings.map { group in
+            var stamped = group
+            stamped.table = group.table.map { row in
+                var stampedRow = row
+                stampedRow.isBestThirdSpot = row.position == 3 && qualifying.contains(row.team.tla ?? "")
+                return stampedRow
+            }
+            return stamped
+        }
+    }
+
+    func matchStats(for fixture: Fixture) async -> MatchStats? {
+        try? await provider.matchStats(eventID: fixture.id, homeTLA: fixture.homeTeam.tla)
     }
 
     private func isStale(_ fixture: Fixture, comparedTo prior: Fixture) -> Bool {

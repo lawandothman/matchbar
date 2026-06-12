@@ -9,7 +9,10 @@ struct StandingRow: Identifiable, Equatable {
     let lost: Int
     let points: Int
     let goalsFor: Int
+    let goalsAgainst: Int
     let goalDifference: Int
+    var form: [FormResult] = []
+    var isBestThirdSpot = false
 
     var id: Int { position }
 }

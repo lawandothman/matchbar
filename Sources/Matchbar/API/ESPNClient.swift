@@ -57,6 +57,50 @@ struct ESPNClient: ScoreProvider {
         }
     }
 
+    func matchStats(eventID: Int, homeTLA: String?) async throws -> MatchStats? {
+        let url = URL(string: "https://site.api.espn.com/apis/site/v2/sports/soccer/fifa.world/summary?event=\(eventID)")!
+        let response: ESPNSummaryResponse = try await get(url)
+        guard let teams = response.boxscore?.teams, teams.count >= 2 else { return nil }
+
+        let homeIndex = teams.firstIndex { $0.team.abbreviation == homeTLA } ?? 0
+        let awayIndex = homeIndex == 0 ? 1 : 0
+        return MatchStats(
+            home: teamStats(teams[homeIndex]),
+            away: teamStats(teams[awayIndex])
+        )
+    }
+
+    private func teamStats(_ box: ESPNBoxTeam) -> TeamMatchStats {
+        var values: [String: String] = [:]
+        for stat in box.statistics ?? [] {
+            if let name = stat.name, let value = stat.displayValue {
+                values[name] = value
+            }
+        }
+        func int(_ key: String) -> Int? { values[key].flatMap(Int.init) }
+        func double(_ key: String) -> Double? { values[key].flatMap(Double.init) }
+
+        let accurate = int("accuratePasses")
+        let total = int("totalPasses")
+        var accuracy: Double?
+        if let accurate, let total, total > 0 {
+            accuracy = Double(accurate) / Double(total)
+        }
+
+        return TeamMatchStats(
+            shots: int("totalShots"),
+            shotsOnTarget: int("shotsOnTarget"),
+            possession: double("possessionPct"),
+            passes: total,
+            passAccuracy: accuracy,
+            fouls: int("foulsCommitted"),
+            yellowCards: int("yellowCards"),
+            redCards: int("redCards"),
+            offsides: int("offsides"),
+            corners: int("wonCorners")
+        )
+    }
+
     private func fixture(_ event: ESPNEvent) -> Fixture? {
         guard let id = Int(event.id),
               let date = Self.eventDateFormatter.date(from: event.date)
@@ -178,6 +222,7 @@ struct ESPNClient: ScoreProvider {
             lost: stats["losses"] ?? 0,
             points: stats["points"] ?? 0,
             goalsFor: stats["pointsFor"] ?? 0,
+            goalsAgainst: stats["pointsAgainst"] ?? 0,
             goalDifference: stats["pointDifferential"] ?? 0
         )
     }

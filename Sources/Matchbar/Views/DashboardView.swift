@@ -4,6 +4,9 @@ struct DashboardView: View {
     let store: MatchStore
     @State private var tab: DashboardTab = .matches
     @State private var launchAtLogin = LaunchAtLogin.isEnabled
+    @State private var selectedTeam: String?
+    @State private var selectedGroup: String?
+    @State private var selectedFixtureID: Int?
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
@@ -11,24 +14,54 @@ struct DashboardView: View {
             Divider()
 
             VStack(alignment: .leading, spacing: 0) {
+                if let fixtureID = selectedFixtureID {
+                    MatchDetailView(store: store, fixtureID: fixtureID) {
+                        selectedFixtureID = nil
+                    }
+                } else {
+                    mainContent
+                }
+            }
+            .frame(maxWidth: .infinity, minHeight: 460, alignment: .top)
+
+            Divider()
+            footer
+        }
+        .frame(width: 460)
+    }
+
+    @ViewBuilder
+    private var mainContent: some View {
+        VStack(alignment: .leading, spacing: 0) {
                 tabPicker
                 switch tab {
                 case .matches:
                     if store.sections.isEmpty {
                         emptyState
                     } else {
-                        fixtureList
+                        if let summary = filterSummary {
+                            MatchFilterSummary(text: summary) {
+                                selectedTeam = nil
+                                selectedGroup = nil
+                            }
+                            .padding(.horizontal, 12)
+                            .padding(.top, 8)
+                        }
+
+                        if visibleSections.isEmpty {
+                            Text("No matches for this filter")
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+                                .frame(maxWidth: .infinity)
+                                .padding(.vertical, 20)
+                        } else {
+                            fixtureList
+                        }
                     }
                 case .groups:
                     StandingsView(standings: store.standings)
                 }
-            }
-            .frame(maxWidth: .infinity, minHeight: 380, alignment: .top)
-
-            Divider()
-            footer
         }
-        .frame(width: 420)
     }
 
     private var tabPicker: some View {
@@ -42,6 +75,30 @@ struct DashboardView: View {
         .frame(maxWidth: .infinity)
         .padding(.horizontal, 12)
         .padding(.top, 8)
+        .overlay(alignment: .trailing) {
+            if tab == .matches {
+                MatchFilterMenu(
+                    teams: store.allTeams,
+                    groups: store.groupLabels,
+                    selectedTeam: $selectedTeam,
+                    selectedGroup: $selectedGroup
+                )
+                .padding(.trailing, 12)
+                .padding(.top, 8)
+            }
+        }
+    }
+
+    private var filterSummary: String? {
+        var parts: [String] = []
+        if let tla = selectedTeam,
+           let team = store.allTeams.first(where: { $0.tla == tla }) {
+            parts.append([team.flag, team.displayName].compactMap { $0 }.joined(separator: " "))
+        }
+        if let group = selectedGroup {
+            parts.append(group)
+        }
+        return parts.isEmpty ? nil : parts.joined(separator: " · ")
     }
 
     private var header: some View {
@@ -57,11 +114,30 @@ struct DashboardView: View {
         .padding(.vertical, 8)
     }
 
+    private var visibleSections: [FixtureDaySection] {
+        store.sections.compactMap { section in
+            let fixtures = section.fixtures.filter(passesFilters)
+            guard !fixtures.isEmpty else { return nil }
+            return FixtureDaySection(day: section.day, fixtures: fixtures)
+        }
+    }
+
+    private func passesFilters(_ fixture: Fixture) -> Bool {
+        if let team = selectedTeam,
+           fixture.homeTeam.tla != team, fixture.awayTeam.tla != team {
+            return false
+        }
+        if let group = selectedGroup, fixture.group != group {
+            return false
+        }
+        return true
+    }
+
     private var fixtureList: some View {
         ScrollViewReader { proxy in
             ScrollView {
                 VStack(alignment: .leading, spacing: 0) {
-                    ForEach(store.sections) { section in
+                    ForEach(visibleSections) { section in
                         VStack(alignment: .leading, spacing: 0) {
                             Text(section.title)
                                 .font(.system(size: 10, weight: .semibold))
@@ -72,9 +148,10 @@ struct DashboardView: View {
                                 .padding(.bottom, 2)
 
                             ForEach(section.fixtures) { fixture in
-                                FixtureRow(fixture: fixture)
-                                    .padding(.horizontal, 12)
-                                    .padding(.vertical, 8)
+                                FixtureRowButton(fixture: fixture) {
+                                    selectedFixtureID = fixture.id
+                                }
+                                .padding(.horizontal, 4)
                             }
                         }
                         .id(section.id)
@@ -82,14 +159,19 @@ struct DashboardView: View {
                 }
                 .padding(.bottom, 8)
             }
-            .frame(maxHeight: 460)
+            .frame(maxHeight: 500)
             .onAppear { scrollToToday(proxy) }
             .onChange(of: store.sections.count) { _, _ in scrollToToday(proxy) }
+            .onChange(of: selectedTeam) { _, _ in scrollToToday(proxy) }
+            .onChange(of: selectedGroup) { _, _ in scrollToToday(proxy) }
         }
     }
 
     private func scrollToToday(_ proxy: ScrollViewProxy) {
-        guard let id = store.todaySectionID else { return }
+        let startOfToday = Calendar.current.startOfDay(for: Date())
+        guard let id = visibleSections.first(where: { $0.day >= startOfToday })?.id
+            ?? visibleSections.last?.id
+        else { return }
         DispatchQueue.main.async {
             proxy.scrollTo(id, anchor: .top)
         }
