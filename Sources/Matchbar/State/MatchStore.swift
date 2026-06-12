@@ -18,13 +18,18 @@ final class MatchStore {
 
     var sections: [FixtureDaySection] {
         let calendar = Calendar.current
-        let startOfToday = calendar.startOfDay(for: Date())
-        let visible = fixtures.filter { $0.utcDate >= startOfToday || $0.isLive }
-        return Dictionary(grouping: visible) { calendar.startOfDay(for: $0.utcDate) }
+        return Dictionary(grouping: fixtures) { calendar.startOfDay(for: $0.utcDate) }
             .map { day, fixtures in
                 FixtureDaySection(day: day, fixtures: fixtures.sorted { $0.utcDate < $1.utcDate })
             }
             .sorted { $0.day < $1.day }
+    }
+
+    // where the popover should land when opened: today, the next match day,
+    // or the last section once the tournament is over
+    var todaySectionID: Date? {
+        let startOfToday = Calendar.current.startOfDay(for: Date())
+        return sections.first(where: { $0.day >= startOfToday })?.id ?? sections.last?.id
     }
 
     init() {
@@ -43,7 +48,7 @@ final class MatchStore {
         do {
             let previous = Dictionary(uniqueKeysWithValues: fixtures.map { ($0.id, $0) })
             let fetched = try await provider.fixtures(
-                from: now.addingTimeInterval(-86400),
+                from: now.addingTimeInterval(-40 * 86400),
                 to: now.addingTimeInterval(40 * 86400)
             )
             // ESPN's CDN occasionally serves a stale snapshot; never let a

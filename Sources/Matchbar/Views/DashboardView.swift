@@ -58,27 +58,41 @@ struct DashboardView: View {
     }
 
     private var fixtureList: some View {
-        ScrollView {
-            VStack(alignment: .leading, spacing: 0) {
-                ForEach(store.sections) { section in
-                    Text(section.title)
-                        .font(.system(size: 10, weight: .semibold))
-                        .textCase(.uppercase)
-                        .foregroundStyle(.secondary)
-                        .padding(.horizontal, 12)
-                        .padding(.top, 10)
-                        .padding(.bottom, 2)
+        ScrollViewReader { proxy in
+            ScrollView {
+                VStack(alignment: .leading, spacing: 0) {
+                    ForEach(store.sections) { section in
+                        VStack(alignment: .leading, spacing: 0) {
+                            Text(section.title)
+                                .font(.system(size: 10, weight: .semibold))
+                                .textCase(.uppercase)
+                                .foregroundStyle(.secondary)
+                                .padding(.horizontal, 12)
+                                .padding(.top, 10)
+                                .padding(.bottom, 2)
 
-                    ForEach(section.fixtures) { fixture in
-                        FixtureRow(fixture: fixture)
-                            .padding(.horizontal, 12)
-                            .padding(.vertical, 8)
+                            ForEach(section.fixtures) { fixture in
+                                FixtureRow(fixture: fixture)
+                                    .padding(.horizontal, 12)
+                                    .padding(.vertical, 8)
+                            }
+                        }
+                        .id(section.id)
                     }
                 }
+                .padding(.bottom, 8)
             }
-            .padding(.bottom, 8)
+            .frame(maxHeight: 460)
+            .onAppear { scrollToToday(proxy) }
+            .onChange(of: store.sections.count) { _, _ in scrollToToday(proxy) }
         }
-        .frame(maxHeight: 460)
+    }
+
+    private func scrollToToday(_ proxy: ScrollViewProxy) {
+        guard let id = store.todaySectionID else { return }
+        DispatchQueue.main.async {
+            proxy.scrollTo(id, anchor: .top)
+        }
     }
 
     private var emptyState: some View {

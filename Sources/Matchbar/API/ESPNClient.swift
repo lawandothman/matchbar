@@ -39,12 +39,21 @@ struct ESPNClient: ScoreProvider {
     func standings() async throws -> [GroupStanding] {
         let response: ESPNStandingsResponse = try await get(URL(string: Self.standingsURL)!)
         return response.children.map { child in
-            GroupStanding(
-                group: child.name,
-                table: child.standings.entries.enumerated().map { index, entry in
-                    standingRow(from: entry, fallbackPosition: index + 1)
-                }
-            )
+            let rows = child.standings.entries.enumerated().map { index, entry in
+                standingRow(from: entry, fallbackPosition: index + 1)
+            }
+            // rank by the group-stage tiebreakers; ESPN's own ordering goes
+            // stale during live rounds
+            var ranked = rows.sorted { a, b in
+                if a.points != b.points { return a.points > b.points }
+                if a.goalDifference != b.goalDifference { return a.goalDifference > b.goalDifference }
+                if a.goalsFor != b.goalsFor { return a.goalsFor > b.goalsFor }
+                return a.position < b.position
+            }
+            for index in ranked.indices {
+                ranked[index].position = index + 1
+            }
+            return GroupStanding(group: child.name, table: ranked)
         }
     }
 
@@ -168,6 +177,7 @@ struct ESPNClient: ScoreProvider {
             draw: stats["ties"] ?? 0,
             lost: stats["losses"] ?? 0,
             points: stats["points"] ?? 0,
+            goalsFor: stats["pointsFor"] ?? 0,
             goalDifference: stats["pointDifferential"] ?? 0
         )
     }
