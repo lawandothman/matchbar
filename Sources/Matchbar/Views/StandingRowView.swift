@@ -17,10 +17,6 @@ struct StandingRowView: View {
                 .lineLimit(1)
                 .frame(maxWidth: .infinity, alignment: .leading)
 
-            Text("\(row.playedGames)").frame(width: 18, alignment: .trailing)
-            Text("\(row.won)").frame(width: 18, alignment: .trailing)
-            Text("\(row.draw)").frame(width: 18, alignment: .trailing)
-            Text("\(row.lost)").frame(width: 18, alignment: .trailing)
             Text("\(row.goalsFor)").frame(width: 18, alignment: .trailing)
             Text("\(row.goalsAgainst)").frame(width: 18, alignment: .trailing)
             Text(goalDifference).frame(width: 24, alignment: .trailing)

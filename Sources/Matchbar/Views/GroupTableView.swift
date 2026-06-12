@@ -11,10 +11,6 @@ struct GroupTableView: View {
                     .frame(maxWidth: .infinity, alignment: .leading)
 
                 Group {
-                    Text("P").frame(width: 18, alignment: .trailing)
-                    Text("W").frame(width: 18, alignment: .trailing)
-                    Text("D").frame(width: 18, alignment: .trailing)
-                    Text("L").frame(width: 18, alignment: .trailing)
                     Text("GF").frame(width: 18, alignment: .trailing)
                     Text("GA").frame(width: 18, alignment: .trailing)
                     Text("GD").frame(width: 24, alignment: .trailing)
