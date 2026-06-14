@@ -28,6 +28,7 @@ struct DashboardView: View {
             footer
         }
         .frame(width: 460)
+        .onAppear { store.refreshNow() }
     }
 
     @ViewBuilder
@@ -187,7 +188,11 @@ struct DashboardView: View {
 
     private var footer: some View {
         HStack {
-            if let error = store.lastError, !store.fixtures.isEmpty {
+            if let aged = store.restoredSavedAt {
+                Text("Last seen \(aged, format: .dateTime.hour().minute())")
+                    .font(.caption2)
+                    .foregroundStyle(.secondary)
+            } else if let error = store.lastError, !store.fixtures.isEmpty {
                 Text(error)
                     .font(.caption2)
                     .foregroundStyle(.red)

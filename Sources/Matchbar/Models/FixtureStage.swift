@@ -1,6 +1,6 @@
 import Foundation
 
-enum FixtureStage: Equatable {
+enum FixtureStage: String, Equatable, Codable {
     case groupStage
     case last32
     case last16

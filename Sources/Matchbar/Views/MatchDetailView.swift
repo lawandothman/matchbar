@@ -10,6 +10,10 @@ struct MatchDetailView: View {
         store.fixtures.first { $0.id == fixtureID }
     }
 
+    private var displayStats: MatchStats? {
+        stats ?? store.cachedStats(for: fixtureID)
+    }
+
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
             backRow
@@ -18,7 +22,7 @@ struct MatchDetailView: View {
                 VStack(spacing: 0) {
                     header(fixture)
 
-                    if let stats {
+                    if let stats = displayStats {
                         statTable(fixture: fixture, stats: stats)
                             .padding(.top, 14)
                     } else if fixture.status == .timed || fixture.status == .scheduled {
@@ -42,7 +46,7 @@ struct MatchDetailView: View {
                     try? await Task.sleep(for: .seconds(30))
                     continue
                 }
-                if let fetched = await store.matchStats(for: fixture) {
+                if let fetched = await store.matchStats(for: fixture, forceRefresh: fixture.isLive) {
                     stats = fetched
                 }
                 if !fixture.isLive { break }

@@ -1,6 +1,6 @@
 import Foundation
 
-enum FormResult: Equatable {
+enum FormResult: String, Equatable, Codable {
     case win
     case draw
     case loss

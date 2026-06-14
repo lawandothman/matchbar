@@ -1,9 +1,9 @@
 import Foundation
 
-struct Fixture: Identifiable, Equatable {
+struct Fixture: Identifiable, Equatable, Codable {
     let id: Int
     let utcDate: Date
-    let status: FixtureStatus
+    var status: FixtureStatus
     var stage: FixtureStage
     var group: String?
     let homeTeam: FixtureTeam

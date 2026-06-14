@@ -1,6 +1,6 @@
 import Foundation
 
-struct GroupStanding: Identifiable, Equatable {
+struct GroupStanding: Identifiable, Equatable, Codable {
     let group: String?
     var table: [StandingRow]
 

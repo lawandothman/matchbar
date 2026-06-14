@@ -1,6 +1,6 @@
 import Foundation
 
-struct GoalEvent: Equatable {
+struct GoalEvent: Equatable, Codable {
     let scorer: String?
     let scorerShort: String?
     let minute: String?

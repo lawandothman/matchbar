@@ -8,11 +8,40 @@ final class MatchStore {
     private(set) var standings: [GroupStanding] = []
     private(set) var lastError: String?
     private(set) var lastUpdated: Date?
+    private(set) var restoredSavedAt: Date?
 
     private var pollTask: Task<Void, Never>?
+    private var sleepTask: Task<Void, Never>?
     private var announcedGoals: [Int: Int] = [:]
     private let provider: any ScoreProvider = ESPNClient()
     private let notifier = MatchNotifier()
+    private let snapshotStore = SnapshotStore()
+
+    private var windowAnchorDay: Date?
+    private var lastWideFetch: Date = .distantPast
+    private var restoredFromDisk = false
+
+    private struct CachedStats {
+        let value: MatchStats
+        let fetchedAt: Date
+        let isFinal: Bool
+    }
+    private var statsCache: [Int: CachedStats] = [:]
+    private var statsInFlight: [Int: Task<MatchStats?, Never>] = [:]
+
+    private let liveInterval: TimeInterval = 30
+    private let idleFloor: TimeInterval = 60
+    private let idleCeiling: TimeInterval = 15 * 60
+    private let preRoll: TimeInterval = 120
+    private let wideFallback: TimeInterval = 600
+    private let liveStatsTTL: TimeInterval = 20
+    private let liveSanity: TimeInterval = 3 * 3600
+
+    private static let utcCalendar: Calendar = {
+        var calendar = Calendar(identifier: .gregorian)
+        calendar.timeZone = TimeZone(identifier: "UTC")!
+        return calendar
+    }()
 
     var liveFixtures: [Fixture] { fixtures.filter(\.isLive) }
 
@@ -49,13 +78,41 @@ final class MatchStore {
 
     init() {
         notifier.requestAuthorization()
+        restoreFromDisk()
         pollTask = Task { [weak self] in
+            await self?.refresh()
             while !Task.isCancelled {
-                await self?.refresh()
-                let interval: Double = self?.liveFixtures.isEmpty == false ? 30 : 60
-                try? await Task.sleep(for: .seconds(interval))
+                guard let self else { return }
+                await self.interruptibleSleep(self.nextPollDelay())
+                if Task.isCancelled { break }
+                await self.tick()
             }
         }
+    }
+
+    func refreshNow() {
+        sleepTask?.cancel()
+    }
+
+    private func interruptibleSleep(_ delay: TimeInterval) async {
+        let task = Task { _ = try? await Task.sleep(for: .seconds(delay)) }
+        sleepTask = task
+        await task.value
+        sleepTask = nil
+    }
+
+    private func restoreFromDisk() {
+        guard let snapshot = snapshotStore.load() else { return }
+        let cutoff = Date().addingTimeInterval(-liveSanity)
+        fixtures = snapshot.fixtures.map { fixture in
+            guard fixture.isLive, fixture.utcDate < cutoff else { return fixture }
+            var stale = fixture
+            stale.status = .unknown
+            return stale
+        }
+        standings = snapshot.standings
+        restoredFromDisk = true
+        restoredSavedAt = snapshot.savedAt
     }
 
     func refresh() async {
@@ -66,27 +123,97 @@ final class MatchStore {
                 from: now.addingTimeInterval(-40 * 86400),
                 to: now.addingTimeInterval(40 * 86400)
             )
-            // ESPN's CDN occasionally serves a stale snapshot; never let a
-            // fixture move backwards in time
-            fixtures = fetched.map { fixture in
-                guard let prior = previous[fixture.id], isStale(fixture, comparedTo: prior) else {
-                    return fixture
-                }
-                return prior
-            }
-            if !previous.isEmpty {
-                announce(changesFrom: previous)
-            }
+            commit(fetched, previous: previous)
             standings = try await provider.standings()
             stampGroups()
             stampForm()
             stampQualification()
+            windowAnchorDay = Self.utcCalendar.startOfDay(for: now)
+            lastWideFetch = now
             lastUpdated = Date()
             lastError = nil
+            snapshotStore.save(fixtures: fixtures, standings: standings)
             welcomeIfNeeded()
         } catch {
             lastError = error.localizedDescription
         }
+    }
+
+    func tick() async {
+        let now = Date()
+        let today = Self.utcCalendar.startOfDay(for: now)
+        if restoredFromDisk
+            || windowAnchorDay != today
+            || now.timeIntervalSince(lastWideFetch) > wideFallback {
+            await refresh()
+            return
+        }
+        do {
+            let previous = Dictionary(uniqueKeysWithValues: fixtures.map { ($0.id, $0) })
+            let fresh = try await provider.fixtures(
+                from: today.addingTimeInterval(-86400),
+                to: today.addingTimeInterval(86400)
+            )
+            var merged = previous
+            var didFinish = false
+            for fixture in fresh {
+                if let prior = merged[fixture.id], isStale(fixture, comparedTo: prior) { continue }
+                if merged[fixture.id]?.status.isLive == true, fixture.status == .finished {
+                    didFinish = true
+                }
+                merged[fixture.id] = fixture
+            }
+            fixtures = merged.values.sorted {
+                $0.utcDate != $1.utcDate ? $0.utcDate < $1.utcDate : $0.id < $1.id
+            }
+            announce(changesFrom: previous)
+            stampGroups()
+            if didFinish {
+                standings = try await provider.standings()
+                stampForm()
+                stampQualification()
+                snapshotStore.save(fixtures: fixtures, standings: standings)
+            }
+            lastUpdated = Date()
+            lastError = nil
+        } catch {
+            lastError = error.localizedDescription
+        }
+    }
+
+    private func commit(_ fetched: [Fixture], previous: [Int: Fixture]) {
+        if restoredFromDisk {
+            fixtures = fetched
+            announcedGoals = Dictionary(uniqueKeysWithValues: fetched.map {
+                ($0.id, ($0.score.fullTime.home ?? 0) + ($0.score.fullTime.away ?? 0))
+            })
+            restoredFromDisk = false
+            restoredSavedAt = nil
+            return
+        }
+        fixtures = fetched.map { fixture in
+            guard let prior = previous[fixture.id], isStale(fixture, comparedTo: prior) else {
+                return fixture
+            }
+            return prior
+        }
+        if !previous.isEmpty {
+            announce(changesFrom: previous)
+        }
+    }
+
+    private func nextPollDelay() -> TimeInterval {
+        if !liveFixtures.isEmpty { return liveInterval }
+        if fixtures.isEmpty || lastError != nil { return idleFloor }
+        let now = Date()
+        let nextKickoff = fixtures
+            .filter { $0.status == .timed && $0.utcDate > now }
+            .map(\.utcDate)
+            .min()
+        guard let nextKickoff else { return idleCeiling }
+        let untilKickoff = nextKickoff.timeIntervalSince(now)
+        if untilKickoff <= preRoll { return idleFloor }
+        return min(untilKickoff - preRoll, idleCeiling)
     }
 
     // one-time hello after the first successful fetch, delayed past the
@@ -196,8 +323,54 @@ final class MatchStore {
         }
     }
 
-    func matchStats(for fixture: Fixture) async -> MatchStats? {
-        try? await provider.matchStats(eventID: fixture.id, homeTLA: fixture.homeTeam.tla)
+    /// Cache-aware match stats. Finished matches are served from memory forever;
+    /// live matches refresh on a short TTL (the detail view forces a refresh on
+    /// its live loop). `forceRefresh` bypasses the TTL.
+    func matchStats(for fixture: Fixture, forceRefresh: Bool = false) async -> MatchStats? {
+        let id = fixture.id
+        // immutable hit: full-time stats never change
+        if let cached = statsCache[id], cached.isFinal {
+            return cached.value
+        }
+        // live hit within the freshness window, unless the caller forced a refresh
+        // or the fixture has since gone terminal (then we want true full-time stats)
+        if !forceRefresh, !isTerminal(fixture.status),
+           let cached = statsCache[id],
+           Date().timeIntervalSince(cached.fetchedAt) < liveStatsTTL {
+            return cached.value
+        }
+        // coalesce duplicate in-flight fetches (e.g. a quick back/forward re-open)
+        if let inFlight = statsInFlight[id] {
+            return await inFlight.value
+        }
+
+        let isFinal = isTerminal(fixture.status)
+        let homeTLA = fixture.homeTeam.tla
+        let task = Task<MatchStats?, Never> { [provider] in
+            try? await provider.matchStats(eventID: id, homeTLA: homeTLA)
+        }
+        statsInFlight[id] = task
+        let result = await task.value
+        statsInFlight[id] = nil
+
+        // only cache successes; leave a transient failure uncached so it retries
+        if let result {
+            statsCache[id] = CachedStats(value: result, fetchedAt: Date(), isFinal: isFinal)
+        }
+        return result
+    }
+
+    /// Synchronous peek so a re-opened finished match paints instantly (no spinner).
+    func cachedStats(for id: Int) -> MatchStats? {
+        statsCache[id]?.value
+    }
+
+    // terminal == stats are frozen; mirrors the post-state mapping in ESPNClient
+    private func isTerminal(_ status: FixtureStatus) -> Bool {
+        switch status {
+        case .finished, .cancelled, .postponed, .suspended: return true
+        default: return false
+        }
     }
 
     private func isStale(_ fixture: Fixture, comparedTo prior: Fixture) -> Bool {

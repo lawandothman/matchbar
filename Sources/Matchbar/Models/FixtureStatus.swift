@@ -1,6 +1,6 @@
 import Foundation
 
-enum FixtureStatus: String, Equatable {
+enum FixtureStatus: String, Equatable, Codable {
     case scheduled
     case timed
     case inPlay

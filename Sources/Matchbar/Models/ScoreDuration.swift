@@ -1,6 +1,6 @@
 import Foundation
 
-enum ScoreDuration: Equatable {
+enum ScoreDuration: String, Equatable, Codable {
     case regular
     case extraTime
     case penaltyShootout

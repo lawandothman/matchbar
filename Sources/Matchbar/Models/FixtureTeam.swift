@@ -1,6 +1,6 @@
 import Foundation
 
-struct FixtureTeam: Equatable {
+struct FixtureTeam: Equatable, Codable {
     let name: String?
     let shortName: String?
     let tla: String?
