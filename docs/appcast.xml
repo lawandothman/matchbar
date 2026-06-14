@@ -3,12 +3,12 @@
   <channel>
     <title>Matchbar</title>
     <item>
-      <title>v0.2.12</title>
-      <sparkle:version>15</sparkle:version>
-      <sparkle:shortVersionString>0.2.12</sparkle:shortVersionString>
+      <title>v0.2.13</title>
+      <sparkle:version>16</sparkle:version>
+      <sparkle:shortVersionString>0.2.13</sparkle:shortVersionString>
       <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
-      <pubDate>Fri, 12 Jun 2026 10:41:21 +0000</pubDate>
-      <enclosure url="https://matchbar-xi.vercel.app/Matchbar.dmg" sparkle:edSignature="b3Pk+P7CHtACg/0BrWwgl3BGfCqxT6mMLygwGtlWRWur7itX+0LGF9v+lwQetKQw5TeykDLwX7ZteymnGzJ+CQ==" length="1515524" type="application/x-apple-diskimage"/>
+      <pubDate>Sun, 14 Jun 2026 12:37:23 +0000</pubDate>
+      <enclosure url="https://matchbar-xi.vercel.app/Matchbar.dmg" sparkle:edSignature="EwZKkG7n7MKzvwJz5OhstAi0jqu13pYFVhTtGImExkbpFVAjFa795EloJVnSgxM9vFOLd+4Rkl+8Er9910/FDg==" length="1573083" type="application/x-apple-diskimage"/>
     </item>
   </channel>
 </rss>
