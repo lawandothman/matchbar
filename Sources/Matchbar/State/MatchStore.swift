@@ -12,6 +12,13 @@ final class MatchStore {
 
     private var pollTask: Task<Void, Never>?
     private var sleepTask: Task<Void, Never>?
+    // exempt the poll loop from App Nap (otherwise timers freeze while the
+    // popover is closed and goals notify minutes late); still lets the Mac
+    // sleep normally when idle
+    private let activityToken = ProcessInfo.processInfo.beginActivity(
+        options: .userInitiatedAllowingIdleSystemSleep,
+        reason: "Live score updates"
+    )
     private var announcedGoals: [Int: Int] = [:]
     private let provider: any ScoreProvider = ESPNClient()
     private let notifier = MatchNotifier()
@@ -407,10 +414,10 @@ final class MatchStore {
                     }
                 } else {
                     if newHome > oldHome {
-                        notifier.notify(title: "⚽️ Goal — \(fixture.homeTeam.displayName)", body: fixture.summaryLine)
+                        notifier.notify(title: "⚽️ Goal - \(fixture.homeTeam.displayName)", body: fixture.summaryLine)
                     }
                     if newAway > oldAway {
-                        notifier.notify(title: "⚽️ Goal — \(fixture.awayTeam.displayName)", body: fixture.summaryLine)
+                        notifier.notify(title: "⚽️ Goal - \(fixture.awayTeam.displayName)", body: fixture.summaryLine)
                     }
                 }
                 announcedGoals[fixture.id] = total

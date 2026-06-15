@@ -51,7 +51,7 @@ struct FixtureRow: View {
         fixture.goals
             .filter { $0.isHome == home }
             .map(\.compactLabel)
-            .joined(separator: ", ")
+            .joined(separator: "\n")
     }
 
     private var homeLabel: String {
