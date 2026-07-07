@@ -84,9 +84,15 @@ struct MatchDetailView: View {
                 .frame(maxWidth: .infinity)
 
                 VStack(spacing: 2) {
-                    Text(fixture.score.display)
+                    Text(fixture.score.baseDisplay ?? "–")
                         .font(.system(size: 24, weight: .bold))
                         .monospacedDigit()
+                    if let penaltyDisplay = fixture.score.penaltyDisplay {
+                        Text(penaltyDisplay)
+                            .font(.system(size: 11, weight: .medium))
+                            .foregroundStyle(.secondary)
+                            .monospacedDigit()
+                    }
                     statusBadge(fixture)
                 }
                 .frame(width: 120)

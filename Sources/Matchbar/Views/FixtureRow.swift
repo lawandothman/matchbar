@@ -13,9 +13,7 @@ struct FixtureRow: View {
                     .frame(maxWidth: .infinity, alignment: .trailing)
                     .lineLimit(1)
 
-                Text(scoreColumn)
-                    .monospacedDigit()
-                    .fontWeight(fixture.isLive ? .bold : .regular)
+                scoreColumn
                     .frame(width: 56)
 
                 Text(awayLabel)
@@ -62,12 +60,25 @@ struct FixtureRow: View {
         [fixture.awayTeam.flag, fixture.awayTeam.displayName].compactMap { $0 }.joined(separator: " ")
     }
 
-    private var scoreColumn: String {
+    @ViewBuilder
+    private var scoreColumn: some View {
         switch fixture.status {
         case .scheduled, .timed:
-            return "v"
+            Text("v")
+                .monospacedDigit()
         default:
-            return fixture.score.display
+            VStack(spacing: 1) {
+                Text(fixture.score.baseDisplay ?? "–")
+                    .monospacedDigit()
+                    .fontWeight(fixture.isLive ? .bold : .regular)
+                if let penaltyDisplay = fixture.score.penaltyDisplay {
+                    Text(penaltyDisplay)
+                        .font(.system(size: 10))
+                        .foregroundStyle(.secondary)
+                        .monospacedDigit()
+                        .fixedSize()
+                }
+            }
         }
     }
 
